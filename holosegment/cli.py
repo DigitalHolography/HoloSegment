@@ -7,10 +7,10 @@ import json
 import sys
 from pathlib import Path
 
-from .reader import HoloReader
+from .loading.reader import HoloReader
 from .preprocessing import preprocess_frames
-from .segmentation import binary_segmentation, semantic_segmentation
-from .pulse_analysis import analyze_pulse
+from .segmentation.artery_vein_segmentation import binary_segmentation, semantic_segmentation
+from .segmentation.pulse_analysis import analyze_pulse
 
 
 def load_config(config_path):
