@@ -2,14 +2,19 @@
 Pipeline for Holosegment.
 """
 
+from models.registry import ModelRegistry
 from io.read_moments import Moments
 from preprocessing.preprocessing import Preprocessor
 from segmentation import artery_vein_segmentation
+from segmentation import binary_segmentation
+
 class Pipeline:
     def __init__(self, config, cache, model_registry):
         self.config = config
         self.cache = cache
-        self.models = model_registry
+
+        vessel_model = ModelRegistry.get("vessel", config["models"]["vessel"])
+        self.cache.vessel_model = vessel_model
 
     def run(self, input_path):
         # Step 1: Load moments data
@@ -47,8 +52,22 @@ class Pipeline:
 
 
     def segment_vessels(self, M0_ff_image):
-        # Implement vessel segmentation using the appropriate model from self.models
-        pass
+        """
+        Perform binary vessel segmentation, using the M0_ff image
+        
+        Args:
+            M0_ff_image: preprocessed M0_flatfield image of shape (height, width)
+            config: artery mask segmentation configuration dict
+            cache: cache object for storing/loading models and intermediate results
+        Returns:
+            Refined artery mask of shape (height, width)
+        """
+    
+        method = self.config.get('BinarySegmentationMethod', 'AI')
+        if method == 'AI':
+            return binary_segmentation.deep_segmentation(M0_ff_image, self.config, self.cache)[0]  # Return artery mask
+        else:
+            raise NotImplementedError(f"Binary segmentation method {method} not implemented.")
 
     def pulse_analysis(self, M0_ff_video, vessel_mask):
         # Implement pulse analysis to compute correlation map and diasys map
