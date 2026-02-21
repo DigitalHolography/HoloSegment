@@ -4,7 +4,7 @@ from huggingface_hub import hf_hub_download
 
 
 class ModelManager:
-    def __init__(self, registry, cache_dir="~/.cache/doppler_seg/models"):
+    def __init__(self, registry, cache_dir="~/.cache/holosegment/models"):
         self.registry = registry
         self.cache_dir = Path(os.path.expanduser(cache_dir))
 

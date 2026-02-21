@@ -1,4 +1,4 @@
-from .model_wrapper import TorchModelWrapper, ONNXModelWrapper
+from model_wrapper import TorchModelWrapper, ONNXModelWrapper
 
 
 def build_model_wrapper(spec, local_path):

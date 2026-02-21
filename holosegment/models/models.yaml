@@ -1,0 +1,8 @@
+iternet5_vesselness:
+  task: vessel_segmentation
+  hf_repo: DigitalHolography/iternet5_vesselness
+  filename: iternet5_vesselness
+  format: onnx
+  input_norm: minmax
+  output_activation: sigmoid
+  revision: main

@@ -27,7 +27,7 @@ def main():
 
     print("Running dummy inference...")
 
-    dummy = np.random.rand(256, 256).astype(np.float32)
+    dummy = np.random.rand(512, 512).astype(np.float32)
     output = model.predict(dummy)
 
     print("Output shape:", output.shape)
