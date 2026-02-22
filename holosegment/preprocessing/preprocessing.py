@@ -98,4 +98,5 @@ class Preprocessor:
         # Step 7: Remove outliers 
         self.remove_outliers()
 
+        self.M0_ff_image = np.mean(self.M0_ff_video, axis=0)
         return 

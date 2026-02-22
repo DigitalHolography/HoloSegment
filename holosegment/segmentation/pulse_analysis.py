@@ -330,16 +330,16 @@ def compute_correlation(video, mask):
     signal = np.nansum(video * mask[np.newaxis, :, :], axis=(1, 2))
     signal = signal / np.count_nonzero(mask)
 
-    # Detect outliers using a moving median and threshold
-    def detect_outliers_moving_median(x, window=5, threshold_factor=2.0):
-        padded = np.pad(x, (window//2,), mode='edge')
-        mov_median = uniform_filter1d(padded, size=window, mode='nearest')[window//2:-(window//2)]
-        deviation = np.abs(x - mov_median)
-        mad = np.median(deviation)
-        return deviation > threshold_factor * mad if mad != 0 else np.zeros_like(x, dtype=bool)
+    # # Detect outliers using a moving median and threshold
+    # def detect_outliers_moving_median(x, window=5, threshold_factor=2.0):
+    #     padded = np.pad(x, (window//2,), mode='edge')
+    #     mov_median = uniform_filter1d(padded, size=window, mode='nearest')[window//2:-(window//2)]
+    #     deviation = np.abs(x - mov_median)
+    #     mad = np.median(deviation)
+    #     return deviation > threshold_factor * mad if mad != 0 else np.zeros_like(x, dtype=bool)
 
-    outlier_frames_mask = detect_outliers_moving_median(signal, window=5, threshold_factor=2)
-    video = interpolate_outlier_frames(video, outlier_frames_mask)  # Needs to be defined
+    # outlier_frames_mask = detect_outliers_moving_median(signal, window=5, threshold_factor=2)
+    # video = interpolate_outlier_frames(video, outlier_frames_mask)  # Needs to be defined
 
     # Recompute signal after outlier interpolation
     signal = np.nansum(video * mask[np.newaxis, :, :], axis=(1, 2))
@@ -491,7 +491,7 @@ def compute_diasys(video, mask):
     # --- Pulse artery signal ---
     # sum over H,W for each frame, normalized by mask area
     mask_nnz = np.count_nonzero(mask)
-    pulse_artery = np.nansum(video[:, mask.astype(bool)], axis=(1)) / max(mask_nnz, 1)
+    pulse_artery = np.nansum(video[:, mask.astype(bool)], axis=(0)) / max(mask_nnz, 1)
 
     # --- Filter pulse_artery to remove high frequency noise ---
     stride = 512

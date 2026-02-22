@@ -110,6 +110,7 @@ class PreprocessStep:
 
         self.pipeline.cache["M0_ff_video"] = pre.M0_ff_video
         self.pipeline.cache["M0_ff_image"] = pre.M0_ff_image
+        print(self.pipeline.cache["M0_ff_image"] is None)
 
 class PulseAnalysisStep:
     requires = ["M0_ff_video", "vessel_mask"]
