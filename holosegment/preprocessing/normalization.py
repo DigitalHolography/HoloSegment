@@ -9,75 +9,35 @@ from scipy.ndimage import gaussian_filter
 import math
 
 
-def flat_field_correction(image, gaussian_blur_ratio, border_amount=0.0):
-    """
-    FLAT_FIELD_CORRECTION Corrects an image for uneven illumination
-    using Gaussian blur.
+def flat_field_correction(video, gaussian_blur_ratio, border_amount=0.0):
+    video = video.astype(np.float32, copy=False)
 
-    Parameters
-    ----------
-    image : np.ndarray (2D)
-        Input image.
-    gaussian_blur_ratio : float
-        Gaussian blur width (sigma).
-    border_amount : float, optional
-        Fraction of the image border to exclude (default = 0).
+    T, H, W = video.shape
 
-    Returns
-    -------
-    corrected_image : np.ndarray
-        Flat-field corrected image.
-    """
-
-    image = image.astype(np.float32, copy=False)
-
-    # --- Check normalization ---
-    Im_min = np.min(image)
-    Im_max = np.max(image)
-
-    if Im_min < 0 or Im_max > 1:
-        if Im_max > Im_min:
-            image = (image - Im_min) / (Im_max - Im_min)
-        else:
-            image = np.zeros_like(image, dtype=np.float32)
-        flag = True
-    else:
-        flag = False
-
-    h, w = image.shape
-
-    # --- Define non-border region ---
-    if border_amount == 0:
-        a, b = 0, h
-        c, d = 0, w
-    else:
-        a = int(math.ceil(h * border_amount))
-        b = int(math.floor(h * (1 - border_amount)))
-        c = int(math.ceil(w * border_amount))
-        d = int(math.floor(w * (1 - border_amount)))
-
-    # --- Sum of intensities in non-border region ---
-    ms = np.sum(image[a:b, c:d])
-
-    # --- Gaussian blur correction ---
-    blurred = gaussian_filter(image, sigma=gaussian_blur_ratio)
-    # avoid division by zero
+    # Blur spatially only (no blur across time)
+    blurred = gaussian_filter(video, sigma=(0, gaussian_blur_ratio, gaussian_blur_ratio))
     blurred[blurred == 0] = 1e-8
 
-    image_corr = image / blurred
+    corrected = video / blurred
 
-    # --- Rescale to maintain intensity ---
-    ms2 = np.sum(image_corr[a:b, c:d])
-    if ms2 != 0:
-        corrected_image = (ms / ms2) * image_corr
+    if border_amount != 0:
+        a = int(math.ceil(H * border_amount))
+        b = int(math.floor(H * (1 - border_amount)))
+        c = int(math.ceil(W * border_amount))
+        d = int(math.floor(W * (1 - border_amount)))
     else:
-        corrected_image = image_corr
+        a, b, c, d = 0, H, 0, W
 
-    # --- Restore original range if normalized ---
-    if flag:
-        corrected_image = Im_min + (Im_max - Im_min) * corrected_image
+    ms = np.sum(video[:, a:b, c:d], axis=(1, 2))
+    ms2 = np.sum(corrected[:, a:b, c:d], axis=(1, 2))
 
-    return corrected_image
+    scale = np.ones_like(ms)
+    valid = ms2 != 0
+    scale[valid] = ms[valid] / ms2[valid]
+
+    corrected *= scale[:, None, None]
+
+    return corrected
 
 
 def normalize_video(frames, method='zscore'):

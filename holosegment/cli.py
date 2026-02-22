@@ -9,12 +9,9 @@ from pathlib import Path
 from holosegment.cache import SegmentationCache
 import numpy as np
 
-from pipeline import Pipeline
-from holosegment.io.read_moments import H5Reader
-from preprocess.preprocessing import preprocess_frames
-from segmentation.artery_vein_segmentation import artery_vein_segmentation
-from segmentation import binary_segmentation
-from segmentation.pulse_analysis import analyze_pulse
+from holosegment.pipeline import Pipeline
+from holosegment.segmentation.artery_vein_segmentation import artery_vein_segmentation
+from holosegment.models.registry import ModelRegistryConfig
 
 
 def load_config(config_path):
@@ -73,57 +70,56 @@ def main():
         print(f"Loading configuration from {config_path}")
     config = load_config(config_path)
 
-    cache = SegmentationCache()
+    registry = ModelRegistryConfig(Path("models.yaml"))
+    pipeline = Pipeline(config, registry)
 
-    pipeline = Pipeline(config, cache)
-
-    pipeline.run(h5_path)
+    pipeline.run_all(h5_path)
     
-    # Step 2: Preprocessing (normalization and registration)
-    if args.verbose:
-        print("Preprocessing frames (normalization and registration)")
-    preprocessed_frames = preprocess_frames(reader.M0, config.get('preprocessing', {}))
+    # # Step 2: Preprocessing (normalization and registration)
+    # if args.verbose:
+    #     print("Preprocessing frames (normalization and registration)")
+    # preprocessed_frames = preprocess_frames(reader.M0, config.get('preprocessing', {}))
     
-    # Step 3: Binary segmentation
-    if args.verbose:
-        print("Performing binary segmentation")
-    vessel_mask = binary_segmentation(preprocessed_frames, config.get('binary_segmentation', {}))
+    # # Step 3: Binary segmentation
+    # if args.verbose:
+    #     print("Performing binary segmentation")
+    # vessel_mask = binary_segmentation(preprocessed_frames, config.get('binary_segmentation', {}))
     
-    # Save binary segmentation results
-    binary_output_path = output_dir / "vessel_mask.npy"
+    # # Save binary segmentation results
+    # binary_output_path = output_dir / "vessel_mask.npy"
     
-    np.save(binary_output_path, vessel_mask)
-    if args.verbose:
-        print(f"Saved vessel mask to {binary_output_path}")
+    # np.save(binary_output_path, vessel_mask)
+    # if args.verbose:
+    #     print(f"Saved vessel mask to {binary_output_path}")
     
-    # Step 4: Pulse analysis using vessel mask
-    if args.verbose:
-        print("Performing pulse analysis")
-    pulse_results = analyze_pulse(preprocessed_frames, vessel_mask, config.get('pulse_analysis', {}))
+    # # Step 4: Pulse analysis using vessel mask
+    # if args.verbose:
+    #     print("Performing pulse analysis")
+    # pulse_results = analyze_pulse(preprocessed_frames, vessel_mask, config.get('pulse_analysis', {}))
     
-    # Save pulse analysis results
-    # Extract only JSON-serializable data
-    pulse_output_data = {
-        'vessel_metrics': pulse_results.get('vessel_metrics', [])
-    }
-    pulse_output_path = output_dir / "pulse_results.json"
-    with open(pulse_output_path, 'w') as f:
-        json.dump(pulse_output_data, f, indent=2)
-    if args.verbose:
-        print(f"Saved pulse analysis results to {pulse_output_path}")
+    # # Save pulse analysis results
+    # # Extract only JSON-serializable data
+    # pulse_output_data = {
+    #     'vessel_metrics': pulse_results.get('vessel_metrics', [])
+    # }
+    # pulse_output_path = output_dir / "pulse_results.json"
+    # with open(pulse_output_path, 'w') as f:
+    #     json.dump(pulse_output_data, f, indent=2)
+    # if args.verbose:
+    #     print(f"Saved pulse analysis results to {pulse_output_path}")
     
-    # Step 5: Semantic segmentation (artery/vein)
-    if args.verbose:
-        print("Performing artery / vein segmentation (artery/vein)")
-    semantic_mask = artery_vein_segmentation(preprocessed_frames, vessel_mask, pulse_results, config.get('semantic_segmentation', {}))
+    # # Step 5: Semantic segmentation (artery/vein)
+    # if args.verbose:
+    #     print("Performing artery / vein segmentation (artery/vein)")
+    # semantic_mask = artery_vein_segmentation(preprocessed_frames, vessel_mask, pulse_results, config.get('semantic_segmentation', {}))
     
-    # Save semantic segmentation results
-    semantic_output_path = output_dir / "artery_vein_mask.npy"
-    np.save(semantic_output_path, semantic_mask)
-    if args.verbose:
-        print(f"Saved artery/vein segmentation to {semantic_output_path}")
+    # # Save semantic segmentation results
+    # semantic_output_path = output_dir / "artery_vein_mask.npy"
+    # np.save(semantic_output_path, semantic_mask)
+    # if args.verbose:
+    #     print(f"Saved artery/vein segmentation to {semantic_output_path}")
     
-    print(f"Processing complete. Results saved to {output_dir}")
+    # print(f"Processing complete. Results saved to {output_dir}")
     return 0
 
 

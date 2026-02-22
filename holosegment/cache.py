@@ -7,7 +7,7 @@ Cache for storing intermediate results during segmentation to speed up processin
 
 import numpy as np
 import torch
-import holosegment.models.model_wrapper as model_wrapper
+import holosegment.models.wrapper as wrapper
 
 class SegmentationCache:
     def __init__(self):
@@ -43,7 +43,7 @@ class SegmentationCache:
 
         model_name = model_name_dict.get((use_correlation, use_diasys))
         if model_name not in self.segmentation_models:
-            self.segmentation_models[model_name] = model_wrapper.load_pt_model(model_name)
+            self.segmentation_models[model_name] = wrapper.load_pt_model(model_name)
         return self.segmentation_models[model_name]
 
     def cache_intermediate_mask(self, mask_name, mask):

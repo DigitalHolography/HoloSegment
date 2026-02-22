@@ -8,7 +8,7 @@ This guide demonstrates the complete workflow for using HoloSegment to perform a
 
 ```bash
 # Clone the repository
-git clone https://github.com/DigitalHolography/HoloSegment.git
+git clone https://github.com/DigitalHolography/git
 cd HoloSegment
 
 # Install the package
@@ -206,9 +206,9 @@ The HoloSegment pipeline consists of five main stages:
 You can use individual modules programmatically:
 
 ```python
-from holosegment.reader import HoloReader
-from holosegment.preprocessing import preprocess_frames
-from holosegment.segmentation import binary_segmentation
+from reader import HoloReader
+from preprocessing import preprocess_frames
+from segmentation import binary_segmentation
 
 # Load data
 reader = HoloReader('data.holo')

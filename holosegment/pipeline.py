@@ -1,99 +1,186 @@
-"""
-Pipeline for Holosegment.
-"""
+from holosegment.models.manager import ModelManager
+from holosegment.models.builder import build_model_wrapper
+from holosegment.input_output.read_moments import Moments
+from holosegment.preprocessing.preprocessing import Preprocessor
+from holosegment.segmentation import artery_vein_segmentation
+from holosegment.segmentation import binary_segmentation
+from holosegment.segmentation.pulse_analysis import compute_correlation, compute_diasys
 
-from models.registry import ModelRegistry
-from io.read_moments import Moments
-from preprocessing.preprocessing import Preprocessor
-from segmentation import artery_vein_segmentation
-from segmentation import binary_segmentation
 
 class Pipeline:
-    def __init__(self, config, cache, model_registry):
+    def __init__(self, config, model_registry):
         self.config = config
-        self.cache = cache
+        self.cache = {}
+        self.model_registry = model_registry
+        self.model_manager = ModelManager(model_registry)
+        self.model_instances = {}
 
-        vessel_model = ModelRegistry.get("vessel", config["models"]["vessel"])
-        self.cache.vessel_model = vessel_model
+        # Register steps
+        self.steps = {
+            "load_moments": LoadMomentsStep(self),
+            "preprocess": PreprocessStep(self),
+            "binary_segmentation": BinarySegmentationStep(self),
+            "pulse_analysis": PulseAnalysisStep(self),
+            "av_segmentation": AVSegmentationStep(self),
+        }
 
-    def run(self, input_path):
-        # Step 1: Load moments data
-        moments = self.load_moments(input_path)
-        self.cache.M0 = moments.M0  # Cache M0 data for use in segmentation
+    # ------------------------------
+    # MODEL HANDLING
+    # ------------------------------
 
-        # Step 2: Preprocess data (normalization, registration and flatfield correction)
-        M0_ff_video, M0_ff_image = self.preprocess(moments)
-        self.cache.M0_ff_video = M0_ff_video
-        self.cache.M0_ff_image = M0_ff_image
+    def get_model(self, model_name):
+        if model_name not in self.model_instances:
+            spec, path = self.model_manager.resolve(model_name)
+            model = build_model_wrapper(spec, path)
+            self.model_instances[model_name] = model
 
-        # Step 3: Perform binary vessel segmentation
-        vessel_mask = self.segment_vessels(self.cache.M0_ff_image)
-        self.cache.vessel_mask = vessel_mask
+        return self.model_instances[model_name]
 
-        # Step 4: Perform pulse analysis to compute correlation map and diasys map
-        correlation_map, diasys_image = self.pulse_analysis(self.cache.M0_ff_video, self.cache.vessel_mask)
-        self.cache.correlation_map = correlation_map
-        self.cache.diasys_image = diasys_image
+    # ------------------------------
+    # EXECUTION CONTROL
+    # ------------------------------
 
-        # Step 5: Perform artery/vein segmentation using correlation and diasys map
-        artery_mask, vein_mask = self.av_segmentation(self.cache.M0_ff_video, self.cache.M0_ff_image, self.cache.correlation_map, self.cache.diasys_image)
+    def run_all(self, input_path):
+        self.cache["input_path"] = input_path
 
-        return artery_mask, vein_mask
-    
-    def load_moments(self, input_path):
+        for name in self.steps:
+            self.run_step(name)
+
+        return (
+            self.cache.get("artery_mask"),
+            self.cache.get("vein_mask"),
+        )
+
+    def run_step(self, step_name):
+        step = self.steps[step_name]
+
+        # Check dependencies
+        for dep in getattr(step, "requires", []):
+            if dep not in self.cache:
+                raise RuntimeError(
+                    f"Step '{step_name}' requires '{dep}' but it is missing."
+                )
+
+        print(f"Running step: {step_name}")
+        step.run()
+
+    def run_from(self, step_name):
+        run = False
+        for name in self.steps:
+            if name == step_name:
+                run = True
+            if run:
+                self.run_step(name)
+
+class BaseStep:
+    name = None
+    requires = []     # list of cache keys required
+    produces = []     # list of cache keys produced
+
+    def __init__(self, context):
+        self.ctx = context
+
+    def run(self):
+        raise NotImplementedError
+
+class LoadMomentsStep:
+    name = "load_moments"
+    produces = ["moments"]
+
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+
+    def run(self):
+        input_path = self.pipeline.cache["input_path"]
         reader = Moments(input_path)
-        reader.read_moments()  # Load data into reader.M0, reader.M1, reader.M2, reader.SH
-        return reader
-    
-    def preprocess(self, moments):
-        preprocessor = Preprocessor(self.config)
-        preprocessor.preprocess(moments)
-        return preprocessor.M0_ff_video, preprocessor.M0_ff_image
+        reader.read_moments()
+        self.pipeline.cache["moments"] = reader
 
+class PreprocessStep:
+    requires = ["moments"]
+    produces = ["M0_ff_video", "M0_ff_image"]
 
-    def segment_vessels(self, M0_ff_image):
-        """
-        Perform binary vessel segmentation, using the M0_ff image
-        
-        Args:
-            M0_ff_image: preprocessed M0_flatfield image of shape (height, width)
-            config: artery mask segmentation configuration dict
-            cache: cache object for storing/loading models and intermediate results
-        Returns:
-            Refined artery mask of shape (height, width)
-        """
-    
-        method = self.config.get('BinarySegmentationMethod', 'AI')
-        if method == 'AI':
-            return binary_segmentation.deep_segmentation(M0_ff_image, self.config, self.cache)[0]  # Return artery mask
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+
+    def run(self):
+        moments = self.pipeline.cache["moments"]
+        pre = Preprocessor(self.pipeline.config, moments)
+        pre.preprocess()
+
+        self.pipeline.cache["M0_ff_video"] = pre.M0_ff_video
+        self.pipeline.cache["M0_ff_image"] = pre.M0_ff_image
+
+class PulseAnalysisStep:
+    requires = ["M0_ff_video", "vessel_mask"]
+    produces = ["temporal_cues"]
+
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+
+    def run(self):
+        video = self.pipeline.cache["M0_ff_video"]
+        vessel_mask = self.pipeline.cache["vessel_mask"]
+
+        cues_requested = self.pipeline.config.get("TemporalCues", ["correlation", "diasys"])
+
+        temporal_cues = {}
+
+        if "correlation" in cues_requested:
+            temporal_cues["correlation"] = compute_correlation(video, vessel_mask)
+
+        if "diasys" in cues_requested:
+            temporal_cues["diasys"] = compute_diasys(video, vessel_mask)
+
+        self.pipeline.cache["temporal_cues"] = temporal_cues
+
+class BinarySegmentationStep:
+    requires = ["M0_ff_image"]
+    produces = ["vessel_mask"]
+
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+
+    def run(self):
+        method = self.pipeline.config.get("BinarySegmentationMethod", "AI")
+        image = self.pipeline.cache["M0_ff_image"]
+
+        if method == "AI":
+            # model_name = self.pipeline.config["Mask"]["VesselSegmentationMethod"]
+            model_name = "iternet5_vesselness"
+            model = self.pipeline.get_model(model_name)
+            mask = model.predict(image)
+
         else:
-            raise NotImplementedError(f"Binary segmentation method {method} not implemented.")
+            raise NotImplementedError
 
-    def pulse_analysis(self, M0_ff_video, vessel_mask):
-        # Implement pulse analysis to compute correlation map and diasys map
-        pass
+        self.pipeline.cache["vessel_mask"] = mask
 
-    def av_segmentation(self, M0_ff_video, M0_ff_image, correlation_map, diasys_image):
-        """
-        Perform artery vein segmentation, using the binary vessel mask
-        
-        Args:
-            M0_ff_video: preprocessed M0_flatfield video of shape (num_frames, height, width)
-            M0_ff_image: preprocessed M0_flatfield image of shape (height, width)
-            correlation_map: correlation map computed from pulse analysis of shape (height, width)
-            diasys_image: diasys image computed from pulse analysis of shape (height, width)
-        
-        Returns:
-            Refined artery mask of shape (height, width)
-        """
-    
-        # Compute pre-artery mask using pulse analysis
-        if self.config['AVCorrelationSegmentationNet'] or self.config['AVDiasysSegmentationNet']:
-            print("Using deep segmentation model for artery vein segmentation.")
-            model = self.models.get_av_segmentation_model(self.config)
-            artery_mask, vein_mask = artery_vein_segmentation.deep_segmentation(M0_ff_video, M0_ff_image, correlation_map, diasys_image, model)
+class AVSegmentationStep:
+    requires = ["M0_ff_video", "M0_ff_image", "temporal_cues"]
+    produces = ["artery_mask", "vein_mask"]
+
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+
+    def run(self):
+        video = self.pipeline.cache["M0_ff_video"]
+        image = self.pipeline.cache["M0_ff_image"]
+        cues = self.pipeline.cache["temporal_cues"]
+
+        if self.pipeline.config.get("AVSegmentationMethod", "AI") == "AI":
+
+            model_name = self.pipeline.config["models"]["av"]
+            model = self.pipeline.get_model(model_name)
+
+            artery_mask, vein_mask = artery_vein_segmentation.deep_segmentation(
+                video, image, cues, model
+            )
+
         else:
-            print("Use hand-made heuristics for artery vein segmentation.")
-            artery_mask, vein_mask = artery_vein_segmentation.handmade_segmentation(M0_ff_video, M0_ff_image, correlation_map, diasys_image, self.config, self.cache)
-        
-        return artery_mask, vein_mask
+            artery_mask, vein_mask = artery_vein_segmentation.handmade_segmentation(
+                video, image, cues
+            )
+
+        self.pipeline.cache["artery_mask"] = artery_mask
+        self.pipeline.cache["vein_mask"] = vein_mask

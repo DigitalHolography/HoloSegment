@@ -14,7 +14,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "holosegment=holosegment.cli:main",
+            "holosegment=cli:main",
         ],
     },
     python_requires=">=3.8",

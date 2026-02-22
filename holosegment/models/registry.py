@@ -4,7 +4,7 @@ Model registry to load available models from YAML.
 
 import yaml
 from pathlib import Path
-from spec import ModelSpec
+from holosegment.models.spec import ModelSpec
 
 
 class ModelRegistryConfig:

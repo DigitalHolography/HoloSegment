@@ -10,8 +10,8 @@ from scipy.ndimage import uniform_filter1d
 
 from skimage.measure import label
 from skimage import measure
-import process_masks
-import holosegment.utils.image_utils as image_utils
+from holosegment.segmentation.process_masks import get_labeled_vesselness
+from holosegment.utils import image_utils
 
 
 # ================================ Pre-artery mask ================================ #
@@ -583,3 +583,4 @@ def compute_diasys_image(video, mask):
     dias = image_utils.normalize_image(M0_Diastole_img)
     diasys_image = image_utils.normalize_image(sys - dias)
     return diasys_image
+ 

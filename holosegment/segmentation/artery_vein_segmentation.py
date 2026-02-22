@@ -3,11 +3,8 @@ Segmentation module for semantic segmentation
 """
 
 import numpy as np
-from scipy import ndimage
 from skimage import filters, morphology, measure
 import holosegment.segmentation.pulse_analysis as pulse_analysis
-import torch
-import holosegment.loading.load_model as load_model
 import holosegment.utils.model_utils as model_utils
   
 
