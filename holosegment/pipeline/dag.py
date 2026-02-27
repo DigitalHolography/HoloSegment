@@ -108,6 +108,20 @@ class DAGEngine:
     # Execution
     # ------------------------------------------------------------------
 
+    def _should_run(self, step, ctx):
+
+        # If outputs missing → must run
+        if not all(ctx.has(k) for k in step.produces):
+            return True
+
+        new_hash = step.fingerprint(ctx)
+        old_hash = ctx.metadata["step_hashes"].get(step.name)
+
+        if old_hash != new_hash:
+            return True
+
+        return False
+
     def run(self, ctx, targets: List[str] = None):
         """
         Execute the DAG.
@@ -124,19 +138,28 @@ class DAGEngine:
         else:
             steps_to_run = self._resolve_required_steps(targets)
 
+        invalidated = set()
+
         for step_name in steps_to_run:
             step = self.steps[step_name]
 
-            # Validate runtime requirements
-            for key in step.requires:
-                if not ctx.has(key):
-                    raise RuntimeError(
-                        f"BaseStep '{step.name}' requires '{key}' "
-                        f"but it is missing from context."
-                    )
+            if step_name in invalidated:
+                print(f"[DAG] Running (invalidated): {step.name}")
+                step.run(ctx)
+                ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
+                continue
+
+            if not self._should_run(step, ctx):
+                print(f"[DAG] Skipping (valid cache): {step.name}")
+                continue
 
             print(f"[DAG] Running step: {step.name}")
             step.run(ctx)
+            ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
+
+            # Invalidate downstream
+            downstream = self._collect_downstream(step_name)
+            invalidated.update(downstream)
 
     # ------------------------------------------------------------------
     # Partial execution support
@@ -173,3 +196,15 @@ class DAGEngine:
             if key in step.produces:
                 return step.name
         return None
+    
+    def _collect_downstream(self, step_name):
+        visited = set()
+
+        def dfs(node):
+            for child in self.graph[node]:
+                if child not in visited:
+                    visited.add(child)
+                    dfs(child)
+
+        dfs(step_name)
+        return visited

@@ -495,7 +495,6 @@ def compute_diasys(video, mask):
     # --- Pulse artery signal ---
     # sum over H,W for each frame, normalized by mask area
     mask_nnz = np.count_nonzero(mask)
-    print(mask.shape, mask_nnz)
     pulse_artery = np.nansum(video[:, mask.astype(bool)], axis=(1)) / max(mask_nnz, 1)
 
     # --- Filter pulse_artery to remove high frequency noise ---

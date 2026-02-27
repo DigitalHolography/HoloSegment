@@ -11,4 +11,5 @@ class ModelSpec:
     format: str              # "pt" or "onnx"
     input_norm: str
     output_activation: str
+    input_channels: Optional[list]
     revision: Optional[str] = "main"

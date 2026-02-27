@@ -81,7 +81,7 @@ def main():
     # # Step 3: Binary segmentation
     # if args.verbose:
     #     print("Performing binary segmentation")
-    # vessel_mask = binary_segmentation(preprocessed_frames, config.get('binary_segmentation', {}))
+    # vessel_mask = vessel_segmentation(preprocessed_frames, config.get('vessel_segmentation', {}))
     
     # # Save binary segmentation results
     # binary_output_path = output_dir / "vessel_mask.npy"

@@ -3,7 +3,7 @@ from holosegment.segmentation import pulse_analysis
 
 class PulseAnalysisStep(NestedStep):
     requires = ["M0_ff_video", "vessel_mask"]
-    produces = ["temporal_cues"]
+    produces = ["correlation", "diasys_image"]
     name = "pulse_analysis"
 
     def __init__(self):
@@ -15,6 +15,9 @@ class PulseAnalysisStep(NestedStep):
     def run(self, ctx):
         for step in self.substeps:
             step.run(ctx)
+
+    def _relevant_config(self, ctx):
+        return {}
             
 class PreArteryMaskStep(BaseStep):
     requires = ["M0_ff_video", "vessel_mask", "optic_disc_center"]
@@ -35,30 +38,25 @@ class PreArteryMaskStep(BaseStep):
 
 class ComputeTemporalCuesStep(BaseStep):
     requires = ["M0_ff_video", "pre_artery_mask"]
-    produces = ["temporal_cues"]
+    produces = ["correlation", "diasys_image"]
 
     def run(self, ctx):
         video = ctx.cache["M0_ff_video"]
         pre_artery_mask = ctx.cache["pre_artery_mask"]
-        
-        use_correlation = ctx.config.get('AVCorrelationSegmentationNet', True)
-        use_diasys = ctx.config.get('AVDiasysSegmentationNet', True)
 
-        temporal_cues = {}
+        params = ctx.config["Mask"]
+
 
         vessel_mask = ctx.cache["vessel_mask"]
 
-        if use_correlation:
-            temporal_cues["correlation"] = pulse_analysis.compute_correlation(video, vessel_mask)
-            ctx.output_manager.save(self.name, "correlation_map", temporal_cues["correlation"], "png")
+        correlation = pulse_analysis.compute_correlation(video, vessel_mask)
+        ctx.set("correlation", correlation)
+        ctx.output_manager.save(self.name, "correlation_map", correlation, "png")
 
-        if use_diasys:
-            diasys, M0_Systole_img, M0_Diastole_img, fullPulse = pulse_analysis.compute_diasys_image(video, pre_artery_mask)
-            ctx.output_manager.save(self.name, "diasys_image", diasys, "png")
-            ctx.output_manager.save(self.name, "M0_Systole_img", M0_Systole_img, "png")
-            ctx.output_manager.save(self.name, "M0_Diastole_img", M0_Diastole_img, "png")
-            ctx.output_manager.save_plot(self.name, "fullPulse", fullPulse, title = "Full Pulse Analysis (mean intensity over time)")
+        diasys, M0_Systole_img, M0_Diastole_img, fullPulse = pulse_analysis.compute_diasys_image(video, vessel_mask)
+        ctx.output_manager.save(self.name, "diasys_image", diasys, "png")
+        ctx.output_manager.save(self.name, "M0_Systole_img", M0_Systole_img, "png")
+        ctx.output_manager.save(self.name, "M0_Diastole_img", M0_Diastole_img, "png")
+        ctx.output_manager.save_plot(self.name, "fullPulse", fullPulse, title = "Full Pulse Analysis (mean intensity over time)")
 
-            temporal_cues["diasys"] = diasys
-
-        ctx.cache["temporal_cues"] = temporal_cues
+        ctx.set("diasys_image", diasys)

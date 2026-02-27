@@ -55,6 +55,9 @@ def normalize_to_uint8(arr):
 
 def save_bounding_box(image, x_center, y_center, diameter_x, diameter_y, output_path):
     plt.figure(figsize=(6, 6))
+    if image.ndim == 3 and image.shape[0] == 3:
+        image = np.transpose(image, (1, 2, 0))  # Convert from (C, H, W) to (H, W, C)
+        
     plt.imshow(image, cmap='gray')
 
     a = diameter_x / 2

@@ -22,6 +22,13 @@ class BaseModelWrapper(ABC):
         y = self._postprocess(y)
         return y
     
+    def prepare_input(self, ctx):
+        channels = []
+        for ch_name in self.spec.input_channels:
+            ch = ctx.require(ch_name)
+            channels.append(ch)
+        return np.stack(channels, axis=0)
+    
     def _preprocess_channel(self, channel):
         if self.spec.input_norm == "zscore":
             return (channel - channel.mean()) / (channel.std() + 1e-8)
@@ -121,6 +128,4 @@ class ONNXModelWrapper(BaseModelWrapper):
         x = x.astype(np.float32)[None, :, :, :]
         outputs = self.session.run(None, {self.input_name: x})
 
-        print(f"{len(outputs)=}, {outputs[0].shape=}")
-        
         return outputs[0]

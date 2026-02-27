@@ -40,7 +40,7 @@ Create a configuration file (e.g., `my_config.json`):
     "register": true,
     "reference_frame": 0
   },
-  "binary_segmentation": {
+  "vessel_segmentation": {
     "threshold_method": "otsu",
     "min_vessel_size": 100,
     "use_temporal_variance": true
@@ -208,7 +208,7 @@ You can use individual modules programmatically:
 ```python
 from reader import HoloReader
 from preprocessing import preprocess_frames
-from segmentation import binary_segmentation
+from segmentation import vessel_segmentation
 
 # Load data
 reader = HoloReader('data.holo')
@@ -219,7 +219,7 @@ config = {'normalize_method': 'zscore', 'register': True}
 preprocessed = preprocess_frames(frames, config)
 
 # Segment
-vessel_mask = binary_segmentation(preprocessed, {'threshold_method': 'otsu'})
+vessel_mask = vessel_segmentation(preprocessed, {'threshold_method': 'otsu'})
 ```
 
 ### Batch Processing

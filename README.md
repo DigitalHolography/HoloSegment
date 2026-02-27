@@ -43,32 +43,6 @@ holosegment <config.json> <input.holo> [-o output_dir] [-v]
 holosegment config_example.json data.holo -o results -v
 ```
 
-## Configuration
-
-The configuration file is a JSON file with the following structure:
-
-```json
-{
-  "preprocessing": {
-    "normalize_method": "zscore",
-    "register": true,
-    "reference_frame": 0
-  },
-  "binary_segmentation": {
-    "threshold_method": "otsu",
-    "min_vessel_size": 100,
-    "use_temporal_variance": true
-  },
-  "pulse_analysis": {
-    "sampling_rate": 1.0,
-    "frequency_range": [0.5, 3.0]
-  },
-  "semantic_segmentation": {
-    "pulsatility_threshold": 0.5
-  }
-}
-```
-
 ### Configuration Parameters
 
 #### Preprocessing
@@ -95,26 +69,6 @@ The application generates the following output files:
 - `vessel_mask.npy`: Binary vessel mask (numpy array)
 - `pulse_results.json`: Pulse analysis metrics
 - `artery_vein_mask.npy`: Semantic segmentation mask (0=background, 1=vein, 2=artery)
-
-## .holo File Format
-
-The .holo file format contains:
-
-- **Header**: 
-  - Magic number: 'HOLO' (4 bytes)
-  - Version: uint32 (4 bytes)
-  - Width: uint32 (4 bytes)
-  - Height: uint32 (4 bytes)
-  - Number of frames: uint32 (4 bytes)
-  - Data type: uint32 (4 bytes) - 0=uint8, 1=uint16, 2=float32, 3=float64
-  - Header size: uint32 (4 bytes)
-
-- **Data**: Raw frame data (num_frames × height × width)
-
-- **Footer** (optional):
-  - Footer size: uint32 (4 bytes)
-  - Timestamp: float64 (8 bytes)
-  - Checksum: uint32 (4 bytes)
 
 ## License
 

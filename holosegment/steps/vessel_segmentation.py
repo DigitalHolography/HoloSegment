@@ -3,10 +3,19 @@ from holosegment.segmentation.process_masks import clean_vessel_mask
 import numpy as np
 from skimage.filters import frangi
 
-class BinarySegmentationStep(BaseStep):
-    name = "binary_segmentation"
+class VesselSegmentation(BaseStep):
+    name = "vessel_segmentation"
     requires = ["M0_ff_image", "optic_disc_center"]
     produces = ["vessel_mask"]
+
+    def _relevant_config(self, ctx):
+        params = ctx.config["Mask"]
+        d = { "VesselSegmentationMethod": params.get("VesselSegmentationMethod", "AI"),
+                 "DiaphragmRadius": params.get("DiaphragmRadius", 0.1),
+                 "CropChoroidRadius": params.get("CropChoroidRadius", 0.45),
+                 "vessel_segmentation_model": ctx.get_current_model_for_task(self.name)
+        }
+        return d
 
     def frangi_segmentation(self, ctx):
         # Placeholder for traditional Frangi filter-based segmentation
@@ -15,25 +24,25 @@ class BinarySegmentationStep(BaseStep):
         vesselness = frangi(image)
         mask = vesselness > 0.5  # Example threshold, can be tuned
 
-        ctx.output_manager.save("binary_segmentation", "vessel_vesselness", vesselness, "png")
-        ctx.output_manager.save("binary_segmentation", "vessel_mask", mask, "png")
+        ctx.output_manager.save("vessel_segmentation", "vessel_vesselness", vesselness, "png")
+        ctx.output_manager.save("vessel_segmentation", "vessel_mask", mask, "png")
 
         return mask
 
     def deep_segmentation(self, ctx):
-        model_name = "iternet5_vesselness"
-        model = ctx.get_model(model_name)
-        image = ctx.require("M0_ff_image")
-        logits = np.squeeze(model.predict(image))
+        model = ctx.get_current_model_for_task(self.name)
+        input = model.prepare_input(ctx)
+
+        logits = np.squeeze(model.predict(input))
         mask = logits > 0.5
 
-        ctx.output_manager.save("binary_segmentation", "vessel_logits", logits, "png")
-        ctx.output_manager.save("binary_segmentation", "vessel_mask", mask, "png")
+        ctx.output_manager.save("vessel_segmentation", "vessel_logits", logits, "png")
+        ctx.output_manager.save("vessel_segmentation", "vessel_mask", mask, "png")
 
         return mask
 
     def get_vessel_mask(self, ctx):
-        method = ctx.config.get("VesselSegmentationMethod", "AI")
+        method = ctx.config.get("Mask", "").get("VesselSegmentationMethod", "AI")
 
         if method == "AI":
             print("Using deep learning model for vessel segmentation.")
@@ -61,7 +70,6 @@ class BinarySegmentationStep(BaseStep):
             crop_radius=params["CropChoroidRadius"],
         )
 
-
         ctx.set("vessel_mask", clean_mask)
 
-        ctx.output_manager.save("binary_segmentation", "clean_mask", clean_mask, "png")
+        ctx.output_manager.save("vessel_segmentation", "clean_mask", clean_mask, "png")

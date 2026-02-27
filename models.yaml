@@ -6,6 +6,7 @@ iternet5_vesselness:
   input_norm: minmax
   output_activation: sigmoid
   revision: main
+  input_channels: ["M0_ff_image"]
 
 nnwnet_av_corr_diasys:
   task: artery_vein_segmentation
@@ -15,6 +16,17 @@ nnwnet_av_corr_diasys:
   input_norm: minmax
   output_activation: argmax
   revision: main
+  input_channels: ["M0_ff_image", "correlation", "diasys_image"]
+
+iternet5_av_diasys:
+  task: artery_vein_segmentation
+  hf_repo: DigitalHolography/iternet5_av_diasys
+  filename: iternet5_av_diasys
+  format: onnx
+  input_norm: minmax
+  output_activation: argmax
+  revision: main
+  input_channels: ["M0_ff_image", "M0_ff_image", "diasys_image"]
 
 optic_disc_detector:
   task: optic_disc_detection
@@ -24,3 +36,4 @@ optic_disc_detector:
   input_norm: minmax
   output_activation: none
   revision: main
+  input_channels: ["M0_ff_image", "M0_ff_image", "M0_ff_image"]

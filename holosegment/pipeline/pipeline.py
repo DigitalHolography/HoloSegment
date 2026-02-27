@@ -3,11 +3,15 @@ from holosegment.models.manager import ModelManager
 from holosegment.models.builder import build_model_wrapper
 from holosegment.pipeline.output_manager import OutputManager
 from typing import Any, Dict
+import json
+from holosegment.utils.json_utils import ordered
+from pathlib import Path
+
 
 from holosegment.steps.load_moments import LoadMomentsStep
 from holosegment.steps.preprocess import PreprocessStep
 from holosegment.steps.optic_disc import OpticDiscDetectionStep
-from holosegment.steps.binary_segmentation import BinarySegmentationStep
+from holosegment.steps.vessel_segmentation import VesselSegmentation
 from holosegment.steps.pulse_analysis import PulseAnalysisStep
 from holosegment.steps.av_segmentation import AVSegmentationStep
 
@@ -21,17 +25,27 @@ class Context:
         - services (models, output, etc.)
     """
 
+
     def __init__(self, config, model_manager, output_manager):
         self.config = config
         self.output_manager = output_manager
         self.model_manager = model_manager
         self.model_instances = {}
+        self.metadata = {
+            "step_hashes": {}
+        }
 
         # Runtime data storage
         self.cache: Dict[str, Any] = {}
 
+    def load_config(self, config_path):
+        self.config = json.load(open(config_path))
+
     def get(self, key: str):
         return self.cache.get(key)
+    
+    def change_model_for_task(self, task_name: str, model_name: str):
+        self.model_manager.change_task_model(task_name, model_name)
 
     def get_model(self, model_name):
         if model_name not in self.model_instances:
@@ -40,6 +54,10 @@ class Context:
             self.model_instances[model_name] = model
 
         return self.model_instances[model_name]
+    
+    def get_current_model_for_task(self, task_name):
+        model_name = self.model_manager.get_current_model_name_for_task(task_name)
+        return self.get_model(model_name)
 
     def set(self, key: str, value: Any):
         self.cache[key] = value
@@ -56,7 +74,7 @@ class Context:
         self.cache.clear()
 
 class Pipeline:
-    def __init__(self, config, model_registry, output_dir=None, debug=False):
+    def __init__(self, model_registry, config=None, output_dir=None, debug=False):
         self.ctx = Context(
             config=config,
             model_manager=ModelManager(model_registry),
@@ -68,15 +86,26 @@ class Pipeline:
             LoadMomentsStep(),
             PreprocessStep(),
             OpticDiscDetectionStep(),
-            BinarySegmentationStep(),
+            VesselSegmentation(),
             PulseAnalysisStep(),
             AVSegmentationStep(),
         }
 
         self.engine = DAGEngine(self.steps)
 
-    def run(self, input_path, targets=None):
-        self.ctx.cache["input_path"] = input_path
+    
+
+    def load_config(self, config_path):
+        self.ctx.load_config(config_path)
+
+    def load_input(self, input_path):
+        self.ctx.set("input_path", input_path)
+
+    def run(self, targets=None):
+        if not self.ctx.has("input_path"):
+            raise RuntimeError("Input path not set. Please load input folder before running the pipeline.")
+        if self.ctx.config is None:
+            raise RuntimeError("Configuration not loaded. Please load a configuration file before running the pipeline.")
         self.engine.run(self.ctx, targets)
         return self.ctx.cache
 

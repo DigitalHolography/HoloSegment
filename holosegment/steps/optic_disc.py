@@ -7,13 +7,18 @@ class OpticDiscDetectionStep(BaseStep):
     requires = ["M0_ff_image", "M1_ff_image"]
     produces = ["optic_disc_center"]
     name = "optic_disc_detection"
+
+    def _relevant_config(self, ctx):
+        params = ctx.config["Mask"]
+        return { 
+            "OpticDiskDetectorNet": params.get("OpticDiskDetectorNet"),
+            "optic_disc_model": ctx.get_current_model_for_task(self.name)}
     
     def deep_detection(self, ctx):
-        model_name = "optic_disc_detector"
+        model = ctx.get_current_model_for_task(self.name)
 
-        model = ctx.get_model(model_name)
-        image = ctx.require("M0_ff_image")
-        boxes = model.predict(image)
+        input = model.prepare_input(ctx)
+        boxes = model.predict(input)
 
         idx = np.argmax(boxes[:, 4, :])  # Assuming the confidence score is in the 5th column
         bestbox = boxes[:, :, idx].flatten()
@@ -26,7 +31,7 @@ class OpticDiscDetectionStep(BaseStep):
 
         print(f"Optic disc center detected at: {center}")
 
-        save_bounding_box(image, x_center, y_center, diameter_x, diameter_y, ctx.output_manager.output_dir / f"{ctx.name}_optic_disc_detection.png")
+        save_bounding_box(input, x_center, y_center, diameter_x, diameter_y, ctx.output_manager.output_dir / f"{self.name}")
 
         return (x_center, y_center), diameter_x, diameter_y
     
@@ -56,25 +61,7 @@ class OpticDiscDetectionStep(BaseStep):
         M0 = ctx.cache["M0_ff_image"]
 
         if use_optic_disc_detector:
-            model_name = "optic_disc_detector"
-            model = ctx.get_model(model_name)
-            print(np.min(M0), np.max(M0))
-            boxes = model.predict(M0)
-
-            idx = np.argmax(boxes[:, 4, :])  # Assuming the confidence score is in the 5th column
-            bestbox = boxes[:, :, idx].flatten()
-            # x_center, y_center, diameter_x, diameter_y = bestbox[:4]  # Get center coordinates (x, y) and diameters of the detected optic disc
-            
-            x_center = bestbox[0]
-            y_center = bestbox[1]
-            diameter_x = bestbox[2]
-            diameter_y = bestbox[3]
-            
-            center = (int(x_center), int(y_center))
-
-            print(f"Optic disc center detected at: {center}")
-
-            save_bounding_box(M0, x_center, y_center, diameter_x, diameter_y, ctx.output_manager.output_dir / f"{self.name}_optic_disc_detection.png")
+            center, diameter_x, diameter_y = self.deep_detection(ctx)
         else:
             center = (M0.shape[1] // 2, M0.shape[0] // 2)  # Fallback to image center if no model is used
 

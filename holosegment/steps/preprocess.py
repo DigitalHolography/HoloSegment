@@ -23,7 +23,6 @@ class Preprocessor:
         self.M2_ff_image = None  # Cache for flatfield-corrected M2
 
     def register(self, reference_idx=0):
-        print(self.config)
         firstFrame = self.config['Preprocess']['Register']['StartFrame']
         endFrame = self.config['Preprocess']['Register']['EndFrame']
         enable = self.config['Preprocess']['Register']['Enable']
@@ -118,6 +117,17 @@ class PreprocessStep(BaseStep):
     produces = ["M0_ff_video", "M0_ff_image", "M1_ff_image"]
     name = "preprocess"
 
+    def _relevant_config(self, ctx):
+        return {
+            "Preprocess": {
+                "Register": ctx.config.get("Preprocess", {}).get("Register", {}),
+                "Crop": ctx.config.get("Preprocess", {}).get("Crop", {})
+            },
+            "FlatFieldCorrection": {
+                "GWRatio": ctx.config.get("FlatFieldCorrection", {}).get("GWRatio", 0.07)
+            }
+        }
+
     def run(self, ctx):
         moments = ctx.cache["moments"]
         ctx.output_manager.save(self.name, "M0_video", moments.M0, format="avi")
@@ -127,18 +137,18 @@ class PreprocessStep(BaseStep):
 
         if pre.M0_ff_image is not None:
             ctx.cache["M0_ff_video"] = pre.M0_ff_video
-            ctx.output_manager.save(self.name, "M0_ff_video", pre.M0_ff_video, format="avi")
+            # ctx.output_manager.save(self.name, "M0_ff_video", pre.M0_ff_video, format="avi")
             ctx.cache["M0_ff_image"] = pre.M0_ff_image
             ctx.output_manager.save(self.name, "M0_ff_image", pre.M0_ff_image, format="png")
 
         if pre.M1_ff_image is not None:
             ctx.cache["M1_ff_video"] = pre.M1_ff_video
-            ctx.output_manager.save(self.name, "M1_ff_video", pre.M1_ff_video, format="avi")
+            # ctx.output_manager.save(self.name, "M1_ff_video", pre.M1_ff_video, format="avi")
             ctx.cache["M1_ff_image"] = pre.M1_ff_image
             ctx.output_manager.save(self.name, "M1_ff_image", pre.M1_ff_image, format="png")
 
         if pre.M2_ff_image is not None:
             ctx.cache["M2_ff_video"] = pre.M2_ff_video
-            ctx.output_manager.save(self.name, "M2_ff_video", pre.M2_ff_video, format="avi")
+            # ctx.output_manager.save(self.name, "M2_ff_video", pre.M2_ff_video, format="avi")
             ctx.cache["M2_ff_image"] = pre.M2_ff_image
             ctx.output_manager.save(self.name, "M2_ff_image", pre.M2_ff_image, format="png")

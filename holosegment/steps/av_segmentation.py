@@ -2,23 +2,21 @@ from holosegment.steps.step import BaseStep
 import numpy as np
 
 class AVSegmentationStep(BaseStep):
-    requires = ["M0_ff_video", "M0_ff_image", "temporal_cues"]
+    requires = ["M0_ff_video", "M0_ff_image", "correlation", "diasys_image"]
     produces = ["artery_mask", "vein_mask"]
-    name = "av_segmentation"
+    name = "artery_vein_segmentation"
+
+    def _relevant_config(self, ctx):
+        params = ctx.config["Mask"]
+        return { "AVSegmentationMethod": params.get("AVSegmentationMethod", "AI"),
+                    "av_segmentation_model": ctx.get_current_model_for_task(self.name)
+        }
 
     def deep_segmentation(self, ctx):
         # model_name = ctx.config["models"]["av"]
-        model_name = "nnwnet_av_corr_diasys"
-        model = ctx.get_model(model_name)
-        M0 = ctx.require("M0_ff_image")
-        cues = ctx.require("temporal_cues")
+        model = ctx.get_current_model_for_task(self.name)
 
-        print(M0.shape, cues["correlation"].shape, cues["diasys"].shape)
-
-        
-        input = np.stack([M0, cues["correlation"], cues["diasys"]], axis=0)  # shape (3, H, W)
-
-        print(input.shape)
+        input = model.prepare_input(ctx)
 
         mask = model.predict(input)
         mask = np.squeeze(mask)  # Remove channel dimension if present

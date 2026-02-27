@@ -9,18 +9,15 @@ import json
 from holosegment.pipeline.pipeline import Pipeline
 from holosegment.models.registry import ModelRegistryConfig
 
-
 def load_config():
-    """Load configuration from JSON file"""
     config_path = select_file()
     if config_path is None or not Path(config_path).exists():
         st.warning("Please select a valid configuration file.")
         return None
     if config_path.suffix != ".json":
         st.warning("Please select a JSON configuration file.")
-        return None 
-    with open(config_path, 'r') as f:
-        return json.load(f)
+        return None
+    return config_path
     
 def select_file():
     root = tk.Tk()
@@ -38,9 +35,24 @@ def select_folder():
     root.destroy()
     return Path(folder_path) 
 
+def overlay_masks(image, artery_mask=None, vein_mask=None):
+    img = image.copy()
+
+    if img.ndim == 2:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+
+    if artery_mask is not None:
+        img[artery_mask > 0] = [255, 0, 0]  # red
+
+    if vein_mask is not None:
+        img[vein_mask > 0] = [0, 0, 255]  # blue
+
+    return img
+    
+
 def init_session():
     if "pipeline" not in st.session_state:
-        st.session_state.pipeline = None
+        st.session_state.pipeline = Pipeline(model_registry=ModelRegistryConfig(Path("models.yaml")), output_dir=Path("output"), debug=True)
 
     if "input_folder" not in st.session_state:
         st.session_state.input_folder = None
@@ -57,61 +69,41 @@ def init_session():
 
 init_session()
 
+binary_seg_model = st.selectbox("Selected binary segmentation model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("vessel_segmentation"))
+st.session_state.pipeline.ctx.change_model_for_task("vessel_segmentation", binary_seg_model)
+av_seg_model = st.selectbox("Selected artery/vein segmentation model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("artery_vein_segmentation"))
+st.session_state.pipeline.ctx.change_model_for_task("artery_vein_segmentation", av_seg_model)
+optic_disc_model = st.selectbox("Selected optic disk detection model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("optic_disc_detection"))
+st.session_state.pipeline.ctx.change_model_for_task("optic_disc_detection", optic_disc_model)
+
 if st.button("Load config"):
-    st.session_state.config = load_config()
-    st.success("Config loaded.")
+    config_path = load_config()
+    if config_path is not None:
+        st.session_state.pipeline.load_config(config_path)
+        st.success("Config loaded.")
 
 # 1. BROWSER BUTTON
 if st.button("Browse Folder"):
+    st.session_state.image = None
+    st.session_state.artery_mask = None
+    st.session_state.vein_mask = None
+
     selected_path = select_folder()
         
     if not selected_path:
         st.warning("Please select a folder path.")
     else:
-        st.session_state.input_folder = selected_path
+        st.session_state.pipeline.load_input(selected_path)
+        st.success("Folder loaded.")
 
-        registry = ModelRegistryConfig(Path("models.yaml"))
-        pipeline = Pipeline(config=st.session_state.config, model_registry=registry, output_dir=Path("output"), debug=True)
-        st.session_state.pipeline = pipeline
+        if st.session_state.pipeline.ctx.config is not None:
+            st.session_state.pipeline.run(targets=[
+                "load_moments",
+                "preprocess"
+            ])
 
-        # Run only required steps
-        pipeline.run(selected_path, targets=[
-            "load_moments",
-            "preprocess"
-        ])
-
-        image = pipeline.ctx.get("M0_ff_image")
-
-        st.session_state.image = image
-        st.success("Folder loaded and preprocessed.")
-
-
-def overlay_masks(image, artery_mask=None, vein_mask=None):
-    img = image.copy()
-
-    print(f"Image shape: {img.shape}")
-    print(image)
-
-    if img.ndim == 2:
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
-    if artery_mask is not None:
-        img[artery_mask > 0] = [255, 0, 0]  # red
-
-    if vein_mask is not None:
-        img[vein_mask > 0] = [0, 0, 255]  # blue
-
-    return img
-
-if st.session_state.image is not None:
-
-    display_img = overlay_masks(
-        st.session_state.image,
-        st.session_state.artery_mask,
-        st.session_state.vein_mask,
-    )
-
-    st.image(display_img, caption="M0_ff_image with overlays")
+            image = st.session_state.pipeline.ctx.get("M0_ff_image")
+            st.session_state.image = image
 
 
 if st.button("Run Full Pipeline"):
@@ -122,11 +114,21 @@ if st.button("Run Full Pipeline"):
         st.warning("Load a folder first.")
     else:
         pipeline.run(
-            st.session_state.input_folder,
             targets=None  # full pipeline
         )
 
+        st.session_state.image = pipeline.ctx.get("M0_ff_image")
         st.session_state.artery_mask = pipeline.ctx.get("artery_mask")
         st.session_state.vein_mask = pipeline.ctx.get("vein_mask")
 
         st.success("Pipeline completed.")
+
+
+if st.session_state.image is not None:
+    display_img = overlay_masks(
+        st.session_state.image,
+        st.session_state.artery_mask,
+        st.session_state.vein_mask,
+    )
+
+    st.image(display_img)
