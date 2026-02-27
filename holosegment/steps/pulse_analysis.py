@@ -46,8 +46,10 @@ class ComputeTemporalCuesStep(BaseStep):
 
         temporal_cues = {}
 
+        vessel_mask = ctx.cache["vessel_mask"]
+
         if use_correlation:
-            temporal_cues["correlation"] = pulse_analysis.compute_correlation(video, pre_artery_mask)
+            temporal_cues["correlation"] = pulse_analysis.compute_correlation(video, vessel_mask)
             ctx.output_manager.save(self.name, "correlation_map", temporal_cues["correlation"], "png")
 
         if use_diasys:

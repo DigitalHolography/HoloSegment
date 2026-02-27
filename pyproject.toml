@@ -1,0 +1,15 @@
+[project]
+name = "holosegment"
+version = "0.1.0"
+description = "Holosegment pipeline"
+authors = [{name="Marius Dubosc"}]
+requires-python = ">= 3.8"
+dynamic = ["dependencies"]
+
+[project.scripts]
+cli = "cli:main"
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

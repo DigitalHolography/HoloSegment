@@ -2,6 +2,7 @@ from holosegment.steps.step import BaseStep
 
 from holosegment.preprocessing.registration import register_video
 from holosegment.preprocessing import normalization, resize
+from utils import image_utils
 import numpy as np
 
 class Preprocessor:
@@ -107,9 +108,9 @@ class Preprocessor:
         # # Step 7: Remove outliers 
         # self.remove_outliers()
 
-        self.M0_ff_image = np.mean(self.M0_ff_video, axis=0) if self.M0_ff_video is not None else None
-        self.M1_ff_image = np.mean(self.M1_ff_video, axis=0) if self.M1_ff_video is not None else None
-        self.M2_ff_image = np.mean(self.M2_ff_video, axis=0) if self.M2_ff_video is not None else None
+        self.M0_ff_image = image_utils.normalize_to_uint8(np.mean(self.M0_ff_video, axis=0)) if self.M0_ff_video is not None else None
+        self.M1_ff_image = image_utils.normalize_to_uint8(np.mean(self.M1_ff_video, axis=0)) if self.M1_ff_video is not None else None
+        self.M2_ff_image = image_utils.normalize_to_uint8(np.mean(self.M2_ff_video, axis=0)) if self.M2_ff_video is not None else None
         return 
 
 class PreprocessStep(BaseStep):

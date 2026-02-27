@@ -2,8 +2,41 @@ import streamlit as st
 import numpy as np
 import cv2
 from pathlib import Path
+import tkinter as tk
+from tkinter import filedialog
+import json
 
 from holosegment.pipeline.pipeline import Pipeline
+from holosegment.models.registry import ModelRegistryConfig
+
+
+def load_config():
+    """Load configuration from JSON file"""
+    config_path = select_file()
+    if config_path is None or not Path(config_path).exists():
+        st.warning("Please select a valid configuration file.")
+        return None
+    if config_path.suffix != ".json":
+        st.warning("Please select a JSON configuration file.")
+        return None 
+    with open(config_path, 'r') as f:
+        return json.load(f)
+    
+def select_file():
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    file_path = filedialog.askopenfilename(master=root)
+    root.destroy()
+    return Path(file_path)
+
+def select_folder():
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    folder_path = filedialog.askdirectory(master=root)
+    root.destroy()
+    return Path(folder_path) 
 
 def init_session():
     if "pipeline" not in st.session_state:
@@ -24,20 +57,25 @@ def init_session():
 
 init_session()
 
-folder = st.text_input("Folder path")
+if st.button("Load config"):
+    st.session_state.config = load_config()
+    st.success("Config loaded.")
 
-if st.button("Load Folder"):
-
-    if not folder:
-        st.warning("Please enter a folder path.")
+# 1. BROWSER BUTTON
+if st.button("Browse Folder"):
+    selected_path = select_folder()
+        
+    if not selected_path:
+        st.warning("Please select a folder path.")
     else:
-        st.session_state.input_folder = folder
+        st.session_state.input_folder = selected_path
 
-        pipeline = Pipeline(config="/d/test/250912/250912_DEA_L_HD_1/eyeflow/json/input_EF_params_0.json")
+        registry = ModelRegistryConfig(Path("models.yaml"))
+        pipeline = Pipeline(config=st.session_state.config, model_registry=registry, output_dir=Path("output"), debug=True)
         st.session_state.pipeline = pipeline
 
         # Run only required steps
-        pipeline.run(folder, targets=[
+        pipeline.run(selected_path, targets=[
             "load_moments",
             "preprocess"
         ])
@@ -50,6 +88,9 @@ if st.button("Load Folder"):
 
 def overlay_masks(image, artery_mask=None, vein_mask=None):
     img = image.copy()
+
+    print(f"Image shape: {img.shape}")
+    print(image)
 
     if img.ndim == 2:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
@@ -80,7 +121,7 @@ if st.button("Run Full Pipeline"):
     if pipeline is None:
         st.warning("Load a folder first.")
     else:
-        pipeline.run_all(
+        pipeline.run(
             st.session_state.input_folder,
             targets=None  # full pipeline
         )
