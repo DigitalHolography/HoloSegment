@@ -24,54 +24,37 @@ def main():
         description='HoloSegment - Artery/vein segmentation from doppler holograms'
     )
     parser.add_argument(
-        'config',
+        'holodoppler_folder',
         type=str,
-        help='Path to JSON configuration file'
-    )
-    parser.add_argument(
-        'h5_file',
-        type=str,
-        help='Path to .h5 input file'
-    )
-    parser.add_argument(
-        '-o', '--output',
-        type=str,
-        default='output',
-        help='Output directory for results (default: output)'
+        help='Path to holodoppler folder'
     )
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Enable verbose output'
     )
+    parser.add_argument(
+        '-c', '--config',
+        type=str,
+        help='Path to JSON configuration file'
+    )
     
     args = parser.parse_args()
     
     # Validate input files
-    config_path = Path(args.eyeflow_config)
-    h5_path = Path(args.h5_file)
-    output_dir = Path(args.output)
+    input_folder = Path(args.holodoppler_folder)
+
+    debug = args.verbose is not None
     
-    if not config_path.exists():
-        print(f"Error: Configuration file not found: {config_path}", file=sys.stderr)
+    if not input_folder.exists():
+        print(f"Error: holodoppler folder not found: {input_folder}", file=sys.stderr)
         sys.exit(1)
-    
-    if not h5_path.exists():
-        print(f"Error: h5 file not found: {h5_path}", file=sys.stderr)
-        sys.exit(1)
-    
-    # Create output directory
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Load configuration
-    if args.verbose:
-        print(f"Loading configuration from {config_path}")
-    config = load_eyeflow_config(config_path)
 
     registry = ModelRegistryConfig(Path("models.yaml"))
-    pipeline = Pipeline(config, registry, output_dir=output_dir, debug=args.verbose)
+    pipeline = Pipeline(registry)
+    pipeline.load_input(input_folder)
 
-    pipeline.run(h5_path)
+    pipeline.run(debug=debug)
 
     return 0
 

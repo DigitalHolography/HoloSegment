@@ -2,7 +2,7 @@ from holosegment.pipeline.step import BaseStep
 
 from holosegment.preprocessing.registration import register_video
 from holosegment.preprocessing import normalization, resize
-from utils import image_utils
+from holosegment.utils import image_utils
 import numpy as np
 
 class Preprocessor:
