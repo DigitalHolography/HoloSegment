@@ -1,75 +1,59 @@
 # HoloSegment
 
-CLI application for artery/vein segmentation from doppler holograms.
+HoloSegment is a segmentation pipeline for retinal artery and vein extraction from Doppler holograms produced by Holodoppler systems.
 
-## Overview
+The application provides:
+- A modular segmentation pipeline
+- A CLI interface
+- A Streamlit-based GUI
+- A model registry for reproducible inference
 
-HoloSegment processes spectral moments of doppler holograms to perform artery/vein segmentation. The processing pipeline includes:
+## Scientific Background
 
-1. **Reading .holo files**: Reads raw data with header and footer
-2. **Preprocessing**: Normalization and registration of frames
-3. **Binary segmentation**: Vessel mask extraction
-4. **Pulse analysis**: Temporal analysis using vessel mask
-5. **Semantic segmentation**: Artery/vein classification
+This work is based on the methodology described in:
+
+> Author et al., *Title of the paper*, Journal, Year.
+> [Link to article]
+
+## Application Overview
+
+HoloSegment performs:
+
+1. Loading and preprocessing of Doppler hologram data
+2. Extraction of full-field M0 images
+3. Artery and vein segmentation
+4. Post-processing and mask refinement
+5. Optional export of results
 
 ## Installation
 
-```bash
+### Clone repository
+
+git clone https://github.com/your_org/holosegment.git
+cd holosegment
+
+### Create environment
+
+python -m venv .venv
+source .venv/bin/activate
+
+### Install in editable mode
+
 pip install -e .
-```
 
-Or install dependencies directly:
+## CLI Usage
 
-```bash
-pip install -r requirements.txt
-```
+holosegment --help
 
-## Usage
+Example:
 
-```bash
-holosegment <config.json> <input.holo> [-o output_dir] [-v]
-```
+holosegment holodoppler_folder_path -v
 
-### Arguments
+## GUI Usage
 
-- `config.json`: JSON configuration file with processing parameters
-- `input.holo`: Input hologram file in .holo format
-- `-o, --output`: Output directory for results (default: `output`)
-- `-v, --verbose`: Enable verbose output
+streamlit run app.py
 
-### Example
+## Documentation
 
-```bash
-holosegment config_example.json data.holo -o results -v
-```
-
-### Configuration Parameters
-
-#### Preprocessing
-- `normalize_method`: Normalization method (`zscore`, `minmax`, `percentile`)
-- `register`: Enable frame registration (boolean)
-- `reference_frame`: Index of reference frame for registration
-
-#### Binary Segmentation
-- `threshold_method`: Thresholding method (`otsu`, `adaptive`, `percentile`)
-- `min_vessel_size`: Minimum vessel size in pixels
-- `use_temporal_variance`: Use temporal variance for segmentation (boolean)
-
-#### Pulse Analysis
-- `sampling_rate`: Sampling rate in Hz
-- `frequency_range`: Physiological frequency range for analysis [min, max] in Hz
-
-#### Semantic Segmentation
-- `pulsatility_threshold`: Threshold to distinguish arteries from veins
-
-## Output Files
-
-The application generates the following output files:
-
-- `vessel_mask.npy`: Binary vessel mask (numpy array)
-- `pulse_results.json`: Pulse analysis metrics
-- `artery_vein_mask.npy`: Semantic segmentation mask (0=background, 1=vein, 2=artery)
-
-## License
-
-MIT
+- Architecture & pipeline design → see WORKFLOW.md
+- Contribution guidelines → see CONTRIBUTING.md
