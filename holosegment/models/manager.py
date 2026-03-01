@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from huggingface_hub import hf_hub_download
+from holosegment.models.wrapper import TorchModelWrapper, ONNXModelWrapper
 
 
 class ModelManager:
@@ -41,3 +42,13 @@ class ModelManager:
         if not model_name:
             raise ValueError(f"No model registered for task '{task_name}'")
         return model_name
+    
+    @staticmethod
+    def build_model_wrapper(spec, local_path):
+        if spec.format == "pt":
+            return TorchModelWrapper(spec, local_path)
+
+        if spec.format == "onnx":
+            return ONNXModelWrapper(spec, local_path)
+
+        raise ValueError(f"Unsupported model format: {spec.format}")

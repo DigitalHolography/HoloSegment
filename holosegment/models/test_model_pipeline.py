@@ -3,7 +3,6 @@ from pathlib import Path
 
 from registry import ModelRegistryConfig
 from manager import ModelManager
-from builder import build_model_wrapper
 
 
 def main():
@@ -23,7 +22,7 @@ def main():
     print("Local model path:", model_path)
 
     print("Building wrapper...")
-    model = build_model_wrapper(spec, model_path)
+    model = ModelManager.build_model_wrapper(spec, model_path)
 
     print("Running dummy inference...")
 

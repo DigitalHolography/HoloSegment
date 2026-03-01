@@ -1,6 +1,5 @@
 from holosegment.pipeline.dag import DAGEngine
 from holosegment.models.manager import ModelManager
-from holosegment.models.builder import build_model_wrapper
 from holosegment.input_output.output_manager import OutputManager
 from typing import Any, Dict
 import json
@@ -59,7 +58,7 @@ class Context:
     def get_model(self, model_name):
         if model_name not in self.model_instances:
             spec, path = self.model_manager.resolve(model_name)
-            model = build_model_wrapper(spec, path)
+            model = ModelManager.build_model_wrapper(spec, path)
             self.model_instances[model_name] = model
 
         return self.model_instances[model_name]
