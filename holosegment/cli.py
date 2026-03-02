@@ -6,14 +6,13 @@ import argparse
 import json
 import sys
 from pathlib import Path
+import numpy as np
 
-from .reader import HoloReader
-from .preprocessing import preprocess_frames
-from .segmentation import binary_segmentation, semantic_segmentation
-from .pulse_analysis import analyze_pulse
+from holosegment.pipeline.pipeline import Pipeline
+from holosegment.models.registry import ModelRegistryConfig
 
 
-def load_config(config_path):
+def load_eyeflow_config(config_path):
     """Load configuration from JSON file"""
     with open(config_path, 'r') as f:
         return json.load(f)
@@ -25,103 +24,40 @@ def main():
         description='HoloSegment - Artery/vein segmentation from doppler holograms'
     )
     parser.add_argument(
-        'config',
+        'holodoppler_folder',
         type=str,
-        help='Path to JSON configuration file'
-    )
-    parser.add_argument(
-        'holo_file',
-        type=str,
-        help='Path to .holo input file'
-    )
-    parser.add_argument(
-        '-o', '--output',
-        type=str,
-        default='output',
-        help='Output directory for results (default: output)'
+        help='Path to holodoppler folder'
     )
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Enable verbose output'
     )
+    parser.add_argument(
+        '-c', '--config',
+        type=str,
+        help='Path to JSON configuration file'
+    )
     
     args = parser.parse_args()
     
     # Validate input files
-    config_path = Path(args.config)
-    holo_path = Path(args.holo_file)
-    output_dir = Path(args.output)
+    input_folder = Path(args.holodoppler_folder)
+
+    debug = args.verbose is not None
     
-    if not config_path.exists():
-        print(f"Error: Configuration file not found: {config_path}", file=sys.stderr)
+    if not input_folder.exists():
+        print(f"Error: holodoppler folder not found: {input_folder}", file=sys.stderr)
         sys.exit(1)
-    
-    if not holo_path.exists():
-        print(f"Error: Holo file not found: {holo_path}", file=sys.stderr)
-        sys.exit(1)
-    
-    # Create output directory
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Load configuration
-    if args.verbose:
-        print(f"Loading configuration from {config_path}")
-    config = load_config(config_path)
-    
-    # Step 1: Read .holo file
-    if args.verbose:
-        print(f"Reading hologram data from {holo_path}")
-    reader = HoloReader(holo_path)
-    frames = reader.read_frames()
-    if args.verbose:
-        print(f"Read {len(frames)} frames")
-    
-    # Step 2: Preprocessing (normalization and registration)
-    if args.verbose:
-        print("Preprocessing frames (normalization and registration)")
-    preprocessed_frames = preprocess_frames(frames, config.get('preprocessing', {}))
-    
-    # Step 3: Binary segmentation
-    if args.verbose:
-        print("Performing binary segmentation")
-    vessel_mask = binary_segmentation(preprocessed_frames, config.get('binary_segmentation', {}))
-    
-    # Save binary segmentation results
-    binary_output_path = output_dir / "vessel_mask.npy"
-    import numpy as np
-    np.save(binary_output_path, vessel_mask)
-    if args.verbose:
-        print(f"Saved vessel mask to {binary_output_path}")
-    
-    # Step 4: Pulse analysis using vessel mask
-    if args.verbose:
-        print("Performing pulse analysis")
-    pulse_results = analyze_pulse(preprocessed_frames, vessel_mask, config.get('pulse_analysis', {}))
-    
-    # Save pulse analysis results
-    # Extract only JSON-serializable data
-    pulse_output_data = {
-        'vessel_metrics': pulse_results.get('vessel_metrics', [])
-    }
-    pulse_output_path = output_dir / "pulse_results.json"
-    with open(pulse_output_path, 'w') as f:
-        json.dump(pulse_output_data, f, indent=2)
-    if args.verbose:
-        print(f"Saved pulse analysis results to {pulse_output_path}")
-    
-    # Step 5: Semantic segmentation (artery/vein)
-    if args.verbose:
-        print("Performing semantic segmentation (artery/vein)")
-    semantic_mask = semantic_segmentation(preprocessed_frames, vessel_mask, pulse_results, config.get('semantic_segmentation', {}))
-    
-    # Save semantic segmentation results
-    semantic_output_path = output_dir / "artery_vein_mask.npy"
-    np.save(semantic_output_path, semantic_mask)
-    if args.verbose:
-        print(f"Saved artery/vein segmentation to {semantic_output_path}")
-    
-    print(f"Processing complete. Results saved to {output_dir}")
+
+    registry = ModelRegistryConfig(Path("models.yaml"))
+    pipeline = Pipeline(registry)
+    if args.config:
+        pipeline.load_eyeflow_config(args.config)
+    pipeline.load_input(input_folder)
+
+    pipeline.run(debug=debug)
+
     return 0
 
 

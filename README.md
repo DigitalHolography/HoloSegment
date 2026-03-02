@@ -1,121 +1,246 @@
+Here is a fully rewritten and updated `README.md` aligned with your current architecture (DAG pipeline, folder-based input, model registry, Streamlit GUI, fingerprinting, etc.).
+It removes outdated `.holo` file usage and old CLI syntax.
+
+You can copy this directly.
+
+---
+
 # HoloSegment
 
-CLI application for artery/vein segmentation from doppler holograms.
+Modular artery/vein segmentation pipeline for Doppler holography retinal imaging.
 
-## Overview
+HoloSegment processes Doppler hologram data acquired with **Holodoppler systems** and performs deterministic, reproducible artery/vein segmentation using a DAG-based pipeline and a configurable model registry.
 
-HoloSegment processes spectral moments of doppler holograms to perform artery/vein segmentation. The processing pipeline includes:
+The project provides:
 
-1. **Reading .holo files**: Reads raw data with header and footer
-2. **Preprocessing**: Normalization and registration of frames
-3. **Binary segmentation**: Vessel mask extraction
-4. **Pulse analysis**: Temporal analysis using vessel mask
-5. **Semantic segmentation**: Artery/vein classification
+* A deterministic DAG-based processing pipeline
+* Automatic dependency resolution and selective recomputation
+* A model registry with HuggingFace integration
+* CLI execution
+* A Streamlit-based GUI
 
-## Installation
+---
+
+# Overview
+
+HoloSegment operates on **Holodoppler acquisition folders**, not single `.holo` files.
+
+The pipeline processes spectral moments derived from Doppler holograms and performs:
+
+1. **Folder loading**
+
+   * Reads Holodoppler folder structure
+   * Loads configuration files
+   * Initializes runtime context
+
+2. **Moment extraction**
+
+   * Loads spectral moments (e.g., M0 full-field image)
+
+3. **Preprocessing**
+
+   * Image normalization
+   * Optional registration
+   * Preparation for model inference
+
+4. **Optic disc detection**
+
+5. **Binary vessel segmentation**
+
+   * Deep learning–based vessel mask extraction
+
+6. **Pulse analysis**
+
+   * Temporal signal analysis using vessel masks
+
+7. **Artery/vein semantic segmentation**
+
+   * Classification of vessels into arteries and veins
+
+The entire workflow is implemented as a **Directed Acyclic Graph (DAG)** with automatic dependency resolution and fingerprint-based cache validation.
+
+---
+
+# Key Features
+
+## Deterministic Execution
+
+Each pipeline step computes a unique fingerprint based on:
+
+* Relevant configuration
+* Input data
+
+If configuration or inputs change, only the necessary steps are recomputed.
+
+---
+
+## Modular Step System
+
+Each step:
+
+* Declares required inputs
+* Declares produced outputs
+* Runs only when dependencies are satisfied
+
+The DAG engine guarantees:
+
+* No cyclic dependencies
+* No duplicate output producers
+* Stable execution order
+
+---
+
+## Model Registry
+
+Models are defined declaratively in a YAML registry and:
+
+* Downloaded automatically from HuggingFace
+* Version-controlled via repository revision
+* Loaded lazily
+* Switchable per task at runtime
+
+Supported formats:
+
+* PyTorch (`.pt`)
+* ONNX (`.onnx`)
+
+---
+
+# Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/your-org/holosegment.git
+cd holosegment
+```
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Install in editable mode:
 
 ```bash
 pip install -e .
 ```
 
-Or install dependencies directly:
+Optional (development tools):
 
 ```bash
-pip install -r requirements.txt
+pip install -e .[dev]
 ```
 
-## Usage
+---
+
+# Usage
+
+## CLI
+
+The CLI runs the full pipeline on a Holodoppler acquisition folder.
 
 ```bash
-holosegment <config.json> <input.holo> [-o output_dir] [-v]
+holosegment run --input /path/to/holodoppler_folder --config config.json
 ```
 
 ### Arguments
 
-- `config.json`: JSON configuration file with processing parameters
-- `input.holo`: Input hologram file in .holo format
-- `-o, --output`: Output directory for results (default: `output`)
-- `-v, --verbose`: Enable verbose output
+* `holodoppler_folder` : Path to Holodoppler folder
+* `--config` : Eyeflow configuration JSON file (optional)
+* `--debug` : Enable debug mode (save intermediate outputs)
 
 ### Example
 
 ```bash
-holosegment config_example.json data.holo -o results -v
+holosegment ./data/patient_01 \
+    --config ./configs/default.json \
+    --debug
 ```
 
-## Configuration
+## GUI (Streamlit)
 
-The configuration file is a JSON file with the following structure:
+Launch the graphical interface:
 
-```json
-{
-  "preprocessing": {
-    "normalize_method": "zscore",
-    "register": true,
-    "reference_frame": 0
-  },
-  "binary_segmentation": {
-    "threshold_method": "otsu",
-    "min_vessel_size": 100,
-    "use_temporal_variance": true
-  },
-  "pulse_analysis": {
-    "sampling_rate": 1.0,
-    "frequency_range": [0.5, 3.0]
-  },
-  "semantic_segmentation": {
-    "pulsatility_threshold": 0.5
-  }
-}
+```bash
+streamlit run app.py
 ```
 
-### Configuration Parameters
+The GUI allows you to:
 
-#### Preprocessing
-- `normalize_method`: Normalization method (`zscore`, `minmax`, `percentile`)
-- `register`: Enable frame registration (boolean)
-- `reference_frame`: Index of reference frame for registration
+* Load a Holodoppler folder
+* Automatically run initial preprocessing
+* Visualize M0 full-field image
+* Overlay vessel and AV segmentation masks
+* Run the full pipeline interactively
 
-#### Binary Segmentation
-- `threshold_method`: Thresholding method (`otsu`, `adaptive`, `percentile`)
-- `min_vessel_size`: Minimum vessel size in pixels
-- `use_temporal_variance`: Use temporal variance for segmentation (boolean)
+---
 
-#### Pulse Analysis
-- `sampling_rate`: Sampling rate in Hz
-- `frequency_range`: Physiological frequency range for analysis [min, max] in Hz
+# Project Structure
 
-#### Semantic Segmentation
-- `pulsatility_threshold`: Threshold to distinguish arteries from veins
+```
+holosegment/
+│
+├── holosegment/
+│   ├── pipeline/          # DAG engine, steps, context
+│   ├── models/            # Registry, manager, wrappers
+│   ├── input_output/      # Folder reading & output handling
+│   ├── utils/
+│   └── ...
+│
+├── app.py                 # Streamlit GUI
+├── cli.py                 # Command-line script
+├── README.md
+├── WORKFLOW.md            # Architecture documentation
+├── CONTRIBUTING.md        # Developer guide
+├── pyproject.toml
+└── requirements.txt
+```
 
-## Output Files
+---
 
-The application generates the following output files:
+# Configuration
 
-- `vessel_mask.npy`: Binary vessel mask (numpy array)
-- `pulse_results.json`: Pulse analysis metrics
-- `artery_vein_mask.npy`: Semantic segmentation mask (0=background, 1=vein, 2=artery)
+The pipeline configuration is provided via a JSON file.
 
-## .holo File Format
+It controls:
 
-The .holo file format contains:
+* Preprocessing parameters
+* Model-related parameters
+* Task-specific thresholds
+* Runtime options
 
-- **Header**: 
-  - Magic number: 'HOLO' (4 bytes)
-  - Version: uint32 (4 bytes)
-  - Width: uint32 (4 bytes)
-  - Height: uint32 (4 bytes)
-  - Number of frames: uint32 (4 bytes)
-  - Data type: uint32 (4 bytes) - 0=uint8, 1=uint16, 2=float32, 3=float64
-  - Header size: uint32 (4 bytes)
+Fingerprinting ensures that changing configuration only recomputes affected steps.
 
-- **Data**: Raw frame data (num_frames × height × width)
+See `WORKFLOW.md` for details on how configuration impacts execution.
 
-- **Footer** (optional):
-  - Footer size: uint32 (4 bytes)
-  - Timestamp: float64 (8 bytes)
-  - Checksum: uint32 (4 bytes)
+---
 
-## License
+# Output
+
+Each pipeline run creates a dedicated output folder.
+
+Depending on debug mode, it may include:
+
+* Vessel masks
+* Artery/vein masks
+* Pulse analysis results
+* Intermediate artifacts
+* Metadata and step fingerprints
+
+Outputs are isolated per run to ensure reproducibility.
+
+---
+
+# Documentation
+
+* Architecture and execution model → `WORKFLOW.md`
+* How to add steps or models → `CONTRIBUTING.md`
+
+---
+
+# License
 
 MIT

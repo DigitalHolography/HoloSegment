@@ -1,245 +1,374 @@
-# HoloSegment Workflow Guide
+# WORKFLOW.md
 
-This guide demonstrates the complete workflow for using HoloSegment to perform artery/vein segmentation from doppler holograms.
+# HoloSegment Workflow
 
-## Quick Start
+This document describes the internal architecture and execution model of the HoloSegment segmentation pipeline.
 
-### 1. Install HoloSegment
+It focuses on system design, execution guarantees, and architectural principles.
 
-```bash
-# Clone the repository
-git clone https://github.com/DigitalHolography/HoloSegment.git
-cd HoloSegment
+For instructions on extending the system, see `CONTRIBUTING.md`.
 
-# Install the package
-pip install -e .
+---
+
+# 1. High-Level Architecture
+
+HoloSegment is built around a modular, deterministic pipeline designed for:
+
+* Reproducibility
+* Partial recomputation
+* Clear dependency management
+* Model version traceability
+* Separation of concerns
+
+Execution flow:
+
+```
+CLI / GUI
+    ↓
+Pipeline
+    ↓
+DAGEngine
+    ↓
+Steps
+    ↓
+Context (shared runtime state)
+    ↓
+OutputManager
 ```
 
-### 2. Prepare Your Data
+The system ensures that computation is:
 
-HoloSegment requires:
-- A `.holo` file containing doppler hologram frames
-- A `.json` configuration file with processing parameters
+* Explicitly declared
+* Dependency-driven
+* Deterministic
+* Cache-aware
 
-### 3. Run the Processing Pipeline
+---
 
-```bash
-holosegment config.json input.holo -o output_dir -v
-```
+# 2. Pipeline as a Directed Acyclic Graph (DAG)
 
-## Detailed Workflow
+The segmentation workflow is implemented as a **Directed Acyclic Graph (DAG)**.
 
-### Step 1: Configure Processing Parameters
+Each node represents a **Step**.
 
-Create a configuration file (e.g., `my_config.json`):
+Edges represent **data dependencies** between steps.
 
-```json
-{
-  "preprocessing": {
-    "normalize_method": "zscore",
-    "register": true,
-    "reference_frame": 0
-  },
-  "binary_segmentation": {
-    "threshold_method": "otsu",
-    "min_vessel_size": 100,
-    "use_temporal_variance": true
-  },
-  "pulse_analysis": {
-    "sampling_rate": 1.0,
-    "frequency_range": [0.5, 3.0]
-  },
-  "semantic_segmentation": {
-    "pulsatility_threshold": 0.5
-  }
-}
-```
+A step depends on another step if it requires a key produced by that step.
 
-#### Configuration Options
+## 2.1 Step Declaration
 
-**Preprocessing:**
-- `normalize_method`: Choose from "zscore", "minmax", or "percentile"
-  - `zscore`: Z-score normalization (mean=0, std=1)
-  - `minmax`: Min-max normalization to [0, 1]
-  - `percentile`: Percentile-based normalization
-- `register`: Enable/disable frame registration (true/false)
-- `reference_frame`: Index of frame to use as reference (default: 0)
+Each step declares:
 
-**Binary Segmentation:**
-- `threshold_method`: Choose from "otsu", "adaptive", or "percentile"
-  - `otsu`: Automatic threshold using Otsu's method
-  - `adaptive`: Local adaptive thresholding
-  - `percentile`: Threshold based on percentile value
-- `min_vessel_size`: Minimum vessel size in pixels (removes small objects)
-- `use_temporal_variance`: Use temporal variance for segmentation (true/false)
-- `percentile`: Percentile value (only for percentile method, e.g., 75)
+* `name` — unique identifier
+* `requires` — list of input keys
+* `produces` — list of output keys
+* `run(ctx)` — execution logic
 
-**Pulse Analysis:**
-- `sampling_rate`: Temporal sampling rate in Hz
-- `frequency_range`: [min, max] frequency range in Hz for pulse analysis
-
-**Semantic Segmentation:**
-- `pulsatility_threshold`: Threshold to distinguish arteries from veins
-  - Higher pulsatility → Artery
-  - Lower pulsatility → Vein
-
-### Step 2: Run Processing
-
-```bash
-holosegment my_config.json my_data.holo -o results -v
-```
-
-Options:
-- `-o, --output`: Output directory (default: "output")
-- `-v, --verbose`: Enable verbose output
-
-### Step 3: Examine Results
-
-The application generates three output files:
-
-1. **vessel_mask.npy**: Binary vessel mask
-   ```python
-   import numpy as np
-   vessel_mask = np.load('results/vessel_mask.npy')
-   # Shape: (height, width), dtype: uint8
-   # Values: 0 (background), 1 (vessel)
-   ```
-
-2. **pulse_results.json**: Pulse analysis metrics
-   ```json
-   {
-     "vessel_metrics": [
-       {
-         "vessel_id": 1,
-         "area": 709.0,
-         "centroid": [85.0, 85.0],
-         "mean_pulsatility": 1.503,
-         "std_pulsatility": 0.124,
-         "mean_frequency": 0.0,
-         "mean_intensity": 4.030
-       }
-     ]
-   }
-   ```
-
-3. **artery_vein_mask.npy**: Semantic segmentation
-   ```python
-   import numpy as np
-   semantic_mask = np.load('results/artery_vein_mask.npy')
-   # Shape: (height, width), dtype: uint8
-   # Values: 0 (background), 1 (vein), 2 (artery)
-   ```
-
-## Example: Complete Analysis
-
-```bash
-# 1. Create synthetic test data (for testing)
-python create_test_holo.py
-
-# 2. Run segmentation with verbose output
-holosegment config_example.json /tmp/test_data.holo -o results -v
-
-# 3. Verify the results
-python verify_output.py results
-```
-
-## Processing Pipeline Details
-
-The HoloSegment pipeline consists of five main stages:
-
-### 1. Data Loading
-- Reads `.holo` file with header and footer
-- Extracts frame dimensions and metadata
-- Loads all frames into memory
-
-### 2. Preprocessing
-- **Normalization**: Standardizes intensity values across frames
-- **Registration**: Aligns frames using phase correlation to correct for motion
-
-### 3. Binary Segmentation
-- Computes temporal variance or mean intensity
-- Applies thresholding to extract vessel regions
-- Morphological operations to clean up the mask
-
-### 4. Pulse Analysis
-- Extracts temporal signals from vessel pixels
-- Computes pulsatility index: (max - min) / mean
-- Performs FFT to find dominant frequencies
-- Calculates per-vessel metrics
-
-### 5. Semantic Segmentation
-- Labels connected vessel components
-- Classifies each vessel based on pulsatility:
-  - High pulsatility → Artery
-  - Low pulsatility → Vein
-
-## Tuning Parameters
-
-### For Better Vessel Detection:
-- Adjust `threshold_method` and `min_vessel_size` in binary segmentation
-- Try different normalization methods
-- Enable/disable frame registration based on data quality
-
-### For Better Artery/Vein Classification:
-- Adjust `pulsatility_threshold` based on your data
-- Modify `frequency_range` to match physiological expectations
-- Ensure `sampling_rate` matches your acquisition rate
-
-## Troubleshooting
-
-**Problem**: Few or no vessels detected
-- Solution: Lower `min_vessel_size` or try different `threshold_method`
-
-**Problem**: Too many false positives
-- Solution: Increase `min_vessel_size` or adjust threshold parameters
-
-**Problem**: Poor artery/vein classification
-- Solution: Adjust `pulsatility_threshold` or check `sampling_rate`
-
-**Problem**: Registration fails or introduces artifacts
-- Solution: Set `register: false` in configuration
-
-## Advanced Usage
-
-### Custom Processing
-
-You can use individual modules programmatically:
+Example structure:
 
 ```python
-from holosegment.reader import HoloReader
-from holosegment.preprocessing import preprocess_frames
-from holosegment.segmentation import binary_segmentation
+class ExampleStep(BaseStep):
+    name = "example"
+    requires = ["input_key"]
+    produces = ["output_key"]
 
-# Load data
-reader = HoloReader('data.holo')
-frames = reader.read_frames()
-
-# Preprocess
-config = {'normalize_method': 'zscore', 'register': True}
-preprocessed = preprocess_frames(frames, config)
-
-# Segment
-vessel_mask = binary_segmentation(preprocessed, {'threshold_method': 'otsu'})
+    def run(self, ctx):
+        ...
 ```
 
-### Batch Processing
+---
 
-```bash
-for file in data/*.holo; do
-    base=$(basename "$file" .holo)
-    holosegment config.json "$file" -o "results/$base"
-done
+## 2.2 Dependency Resolution
+
+During initialization:
+
+1. All steps are registered.
+2. The engine maps:
+
+   * Which step produces which key.
+3. A dependency graph is constructed automatically.
+4. A topological sort determines execution order.
+
+Constraints:
+
+* No duplicate step names.
+* No duplicate produced keys.
+* No dependency cycles.
+
+If a cycle is detected, execution fails immediately.
+
+---
+
+# 3. Execution Engine
+
+The `DAGEngine` is responsible for:
+
+* Dependency resolution
+* Topological sorting
+* Selective execution
+* Cache validation
+* Downstream invalidation
+
+---
+
+## 3.1 Full Execution
+
+If no targets are specified:
+
+* All steps are executed in topological order.
+
+---
+
+## 3.2 Partial Execution
+
+The pipeline supports partial execution.
+
+When specific targets are provided:
+
+```python
+pipeline.run(targets=["av_segmentation"])
 ```
 
-## Citation
+The engine:
 
-If you use HoloSegment in your research, please cite:
+1. Resolves the minimal required subgraph.
+2. Executes only necessary upstream steps.
+3. Preserves global topological order.
+
+This enables:
+
+* Fast experimentation
+* Targeted recomputation
+* Step-level debugging
+
+---
+
+# 4. Context: Shared Runtime State
+
+The `Context` object is the shared runtime container.
+
+It stores:
+
+* Configuration
+* Model manager
+* Model instances (lazy-loaded)
+* Input folder
+* Output manager
+* Runtime cache (intermediate artifacts)
+* Step fingerprints
+
+All inter-step communication occurs exclusively via the context.
+
+No global state is used.
+
+---
+
+## 4.1 Runtime Cache
+
+Intermediate results are stored in:
 
 ```
-[Citation information to be added]
+ctx.cache
 ```
 
-## Support
+Keys represent semantic artifacts such as:
 
-For issues, questions, or contributions, please visit:
-https://github.com/DigitalHolography/HoloSegment
+* Preprocessed images
+* Segmentation masks
+* Optic disc localization
+* Pulse features
+
+This design ensures:
+
+* Explicit data flow
+* Clear provenance
+* Easy debugging
+
+---
+
+# 5. Deterministic Fingerprinting
+
+Each step has a deterministic fingerprint.
+
+The fingerprint depends on:
+
+* Relevant configuration
+* Input data signatures
+
+By default:
+
+* The entire configuration is hashed.
+* All required inputs are hashed.
+* NumPy arrays are hashed via raw bytes.
+
+Fingerprint formula (conceptually):
+
+```
+fingerprint = hash(
+    relevant_config +
+    hashed_inputs
+)
+```
+
+---
+
+## 5.1 Cache Validation Logic
+
+Before running a step:
+
+1. If outputs are missing → run.
+2. If fingerprint differs from previous run → run.
+3. Otherwise → skip (cached result valid).
+
+When a step is re-executed:
+
+* All downstream dependent steps are invalidated automatically.
+
+This guarantees:
+
+* Correct recomputation
+* Minimal redundant work
+* Deterministic behavior
+
+---
+
+# 6. Model Registry and Model Lifecycle
+
+Models are registered declaratively in a YAML configuration file.
+
+Each model defines:
+
+* Task association
+* HuggingFace repository
+* Filename
+* Revision
+* Format (`pt` or `onnx`)
+* Input normalization
+* Output activation
+* Input channels
+
+---
+
+## 6.1 ModelManager Responsibilities
+
+The `ModelManager`:
+
+* Resolves model specifications
+* Downloads weights via `hf_hub_download`
+* Caches models locally
+* Manages task → model mapping
+* Supports runtime model switching
+
+Models are:
+
+* Downloaded lazily
+* Loaded on first access
+* Cached in memory per session
+
+---
+
+## 6.2 Task-Based Model Selection
+
+Each task is associated with a default model.
+
+Steps do not hardcode model names.
+
+Instead, they request:
+
+```python
+ctx.get_current_model_for_task(task_name)
+```
+
+This abstraction enables:
+
+* Model experimentation
+* Version switching
+* Clean separation between logic and weights
+
+---
+
+# 7. Output Management
+
+Output generation is managed through `OutputManager`.
+
+The context initializes an output directory per run.
+
+The output system:
+
+* Is optional (debug mode)
+* Avoids mixing computation and persistence logic
+* Keeps reproducibility intact
+
+---
+
+# 8. Architectural Guarantees
+
+HoloSegment guarantees:
+
+### Deterministic Execution
+
+Given identical:
+
+* Input data
+* Configuration
+* Model versions
+
+The output is deterministic.
+
+---
+
+### Explicit Dependencies
+
+All data dependencies are declared.
+
+No hidden coupling exists between steps.
+
+---
+
+### Automatic Invalidation
+
+Configuration changes trigger only necessary recomputation.
+
+---
+
+### No Global State
+
+All runtime information flows through `Context`.
+
+---
+
+### Model Version Traceability
+
+Model revision and source repository are explicitly defined in the registry.
+
+---
+
+# 9. Design Principles
+
+The system is built around:
+
+* Declarative computation
+* Explicit data flow
+* Minimal side effects
+* Modular extensibility
+* Reproducible research workflows
+
+The DAG abstraction ensures the pipeline remains:
+
+* Scalable
+* Maintainable
+* Safe to extend
+
+---
+
+# 10. Summary
+
+The HoloSegment workflow is:
+
+* A deterministic DAG-based pipeline
+* With fingerprint-based selective execution
+* Backed by a declarative model registry
+* Using a shared runtime context
+* Designed for reproducibility and extensibility
+
+For instructions on extending the pipeline or adding models, refer to `CONTRIBUTING.md`.
