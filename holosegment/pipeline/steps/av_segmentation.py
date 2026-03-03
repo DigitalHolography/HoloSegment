@@ -4,7 +4,7 @@ import numpy as np
 class AVSegmentationStep(BaseStep):
     requires = ["M0_ff_video", "M0_ff_image", "correlation", "diasys_image"]
     produces = ["artery_mask", "vein_mask"]
-    name = "artery_vein_segmentation"
+    name = "retinal_artery_vein_segmentation"
 
     def _relevant_config(self, ctx):
         params = ctx.eyeflow_config["Mask"]

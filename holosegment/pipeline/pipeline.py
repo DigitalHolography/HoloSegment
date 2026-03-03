@@ -10,7 +10,7 @@ from pathlib import Path
 from holosegment.pipeline.steps.load_moments import LoadMomentsStep
 from holosegment.pipeline.steps.preprocess import PreprocessStep
 from holosegment.pipeline.steps.optic_disc import OpticDiscDetectionStep
-from holosegment.pipeline.steps.vessel_segmentation import VesselSegmentation
+from holosegment.pipeline.steps.vessel_segmentation import RetinalVesselSegmentationStep, ChoroidalVesselSegmentationStep
 from holosegment.pipeline.steps.pulse_analysis import PulseAnalysisStep
 from holosegment.pipeline.steps.av_segmentation import AVSegmentationStep
 from holosegment.input_output.read_folder import HolodopplerFolder
@@ -103,7 +103,8 @@ class Pipeline:
             LoadMomentsStep(),
             PreprocessStep(),
             OpticDiscDetectionStep(),
-            VesselSegmentation(),
+            RetinalVesselSegmentationStep(),
+            ChoroidalVesselSegmentationStep(),
             PulseAnalysisStep(),
             AVSegmentationStep(),
         }

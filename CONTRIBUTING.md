@@ -145,11 +145,11 @@ class MyNewStep(BaseStep):
 
     name = "my_new_step"
 
-    requires = ["vessel_mask"]
+    requires = ["retinal_vessel_mask"]
     produces = ["refined_mask"]
 
     def run(self, ctx):
-        vessel_mask = ctx.require("vessel_mask")
+        vessel_mask = ctx.require("retinal_vessel_mask")
 
         refined = do_something(vessel_mask)
 

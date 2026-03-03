@@ -1,19 +1,30 @@
 from holosegment.pipeline.step import BaseStep
+from abc import abstractmethod
+from holosegment.segmentation import process_masks
 from holosegment.segmentation.process_masks import clean_vessel_mask
 import numpy as np
 from skimage.filters import frangi
 
-class VesselSegmentation(BaseStep):
-    name = "vessel_segmentation"
+class VesselSegmentationStep(BaseStep):
+    @abstractmethod
+    def get_vessel_mask(self, ctx):
+        pass
+
+    @abstractmethod
+    def clean_vessel_mask(self, raw_mask, ctx):
+        pass
+
+class RetinalVesselSegmentationStep(VesselSegmentationStep):
+    name = "retinal_vessel_segmentation"
     requires = ["M0_ff_image", "optic_disc_center"]
-    produces = ["vessel_mask"]
+    produces = ["retinal_vessel_mask"]
 
     def _relevant_config(self, ctx):
         params = ctx.eyeflow_config["Mask"]
-        d = { "VesselSegmentationMethod": params.get("VesselSegmentationMethod", "AI"),
-                 "DiaphragmRadius": params.get("DiaphragmRadius", 0.1),
-                 "CropChoroidRadius": params.get("CropChoroidRadius", 0.45),
-                 "vessel_segmentation_model": ctx.get_current_model_for_task(self.name)
+        d = { "VesselSegmentationMethod": params["VesselSegmentationMethod"],
+                 "DiaphragmRadius": params["DiaphragmRadius"],
+                 "CropChoroidRadius": params["CropChoroidRadius"],
+                 "retinal_vessel_segmentation_model": ctx.get_current_model_for_task(self.name)
         }
         return d
 
@@ -22,10 +33,9 @@ class VesselSegmentation(BaseStep):
 
         image = ctx.require("M0_ff_image")
         vesselness = frangi(image)
-        mask = vesselness > 0.5  # Example threshold, can be tuned
+        mask = ~vesselness.astype(bool)
 
-        ctx.output_manager.save("vessel_segmentation", "vessel_vesselness", vesselness, "png")
-        ctx.output_manager.save("vessel_segmentation", "vessel_mask", mask, "png")
+        ctx.output_manager.save(self.name, "frangi_vesselness", vesselness, "png")
 
         return mask
 
@@ -36,10 +46,25 @@ class VesselSegmentation(BaseStep):
         logits = np.squeeze(model.predict(input))
         mask = logits > 0.5
 
-        ctx.output_manager.save("vessel_segmentation", "vessel_logits", logits, "png")
-        ctx.output_manager.save("vessel_segmentation", "vessel_mask", mask, "png")
+        ctx.output_manager.save(self.name, "vessel_logits", logits, "png")
 
         return mask
+    
+    def clean_vessel_mask(self, raw_mask, ctx):
+        image = ctx.require("M0_ff_image")
+        optic_disc_center = ctx.require("optic_disc_center")
+
+        params = ctx.eyeflow_config["Mask"]
+
+        clean_mask = clean_vessel_mask(
+            raw_mask,
+            image_shape=image.shape,
+            optic_disc_center=optic_disc_center,
+            diaphragm_radius=params["DiaphragmRadius"],
+            crop_radius=params["CropChoroidRadius"],
+        )
+
+        return clean_mask
 
     def get_vessel_mask(self, ctx):
         method = ctx.eyeflow_config.get("Mask", "").get("VesselSegmentationMethod", "AI")
@@ -51,25 +76,66 @@ class VesselSegmentation(BaseStep):
         if method == "frangi":
             print("Using Frangi filter for vessel segmentation.")
             return self.frangi_segmentation(ctx)
-
+        
     def run(self, ctx):
-        image = ctx.require("M0_ff_image")
-        optic_disc_center = ctx.require("optic_disc_center")
-
         # ---- Segmentation ----
         raw_mask = self.get_vessel_mask(ctx)
+        ctx.output_manager.save(self.name, "vessel_mask", raw_mask, "png")
 
         # ---- Postprocessing ----
+        clean_mask = self.clean_vessel_mask(raw_mask, ctx)
+
+        ctx.set("retinal_vessel_mask", clean_mask)
+        ctx.output_manager.save(self.name, "vessel_mask_clean", clean_mask, "png")
+
+
+class ChoroidalVesselSegmentationStep(VesselSegmentationStep):
+    name = "choroidal_vessel_segmentation"
+    requires = ["M0_ff_image", "retinal_vessel_mask", "optic_disc_center"]
+    produces = ["choroidal_vessel_mask"]
+
+    def _relevant_config(self, ctx):
         params = ctx.eyeflow_config["Mask"]
+        d = {"DiaphragmRadius": params["DiaphragmRadius"]}
+        return d
 
-        clean_mask = clean_vessel_mask(
-            raw_mask,
-            image_shape=image.shape,
-            optic_disc_center=optic_disc_center,
-            diaphragm_radius=params["DiaphragmRadius"],
-            crop_radius=params["CropChoroidRadius"],
-        )
+    def frangi_segmentation(self, ctx):
+        # Placeholder for traditional Frangi filter-based segmentation
 
-        ctx.set("vessel_mask", clean_mask)
+        image = ctx.require("M0_ff_image")
+        vesselness = frangi(image)
+        mask = ~vesselness.astype(bool)
 
-        ctx.output_manager.save("vessel_segmentation", "clean_mask", clean_mask, "png")
+        ctx.output_manager.save(self.name, "frangi_vesselness", vesselness, "png")
+
+        return mask
+    
+    def clean_vessel_mask(self, raw_mask, ctx):
+        params = ctx.eyeflow_config["Mask"]
+        center = ctx.require("optic_disc_center")
+
+        diaphragm_radius = params["DiaphragmRadius"]
+        h, w = raw_mask.shape
+        mask_diaphragm = process_masks.disk_mask(h, w, diaphragm_radius, center=(center[0] / w, center[1] / h))
+
+        clean_mask = raw_mask & mask_diaphragm
+
+        return clean_mask
+
+    def get_vessel_mask(self, ctx):
+        vessel_mask = self.frangi_segmentation(ctx)
+        retinal_vessel_mask = ctx.require("retinal_vessel_mask")
+
+        choroidal_vessel_mask = vessel_mask & ~retinal_vessel_mask
+        return choroidal_vessel_mask
+    
+    def run(self, ctx):
+        # ---- Segmentation ----
+        raw_mask = self.get_vessel_mask(ctx)
+        ctx.output_manager.save(self.name, "vessel_mask", raw_mask, "png")
+
+        # ---- Postprocessing ----
+        clean_mask = self.clean_vessel_mask(raw_mask, ctx)
+
+        ctx.set("choroidal_vessel_mask", clean_mask)
+        ctx.output_manager.save(self.name, "vessel_mask_clean", clean_mask, "png")

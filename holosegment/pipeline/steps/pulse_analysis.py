@@ -2,7 +2,7 @@ from holosegment.pipeline.step import BaseStep, NestedStep
 from holosegment.segmentation import pulse_analysis
 
 class PulseAnalysisStep(NestedStep):
-    requires = ["M0_ff_video", "vessel_mask"]
+    requires = ["M0_ff_video", "retinal_vessel_mask"]
     produces = ["correlation", "diasys_image"]
     name = "pulse_analysis"
 
@@ -17,7 +17,7 @@ class PulseAnalysisStep(NestedStep):
             step.run(ctx)
             
 class PreArteryMaskStep(BaseStep):
-    requires = ["M0_ff_video", "vessel_mask", "optic_disc_center"]
+    requires = ["M0_ff_video", "retinal_vessel_mask", "optic_disc_center"]
     produces = ["pre_artery_mask"]
     name = "pre_artery_mask"
 
@@ -26,7 +26,7 @@ class PreArteryMaskStep(BaseStep):
 
     def run(self, ctx):
         video = ctx.cache["M0_ff_video"]
-        vessel_mask = ctx.cache["vessel_mask"]
+        vessel_mask = ctx.cache["retinal_vessel_mask"]
 
         sampling_frequency = ctx.holodoppler_config["fs"]
 
