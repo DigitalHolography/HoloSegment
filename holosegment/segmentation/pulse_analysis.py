@@ -358,7 +358,7 @@ def compute_correlation(video, mask):
     
     R = numerator / denominator
     
-    return R
+    return R, signal_centered
 
 # ================================ Diastole/Systole Analysis ================================ #
 
@@ -379,6 +379,12 @@ def validate_peaks(sys_idx_list, min_distance):
             i += 1
 
     return sys_idx_list
+
+
+
+
+def get_filtered_pulse():
+    pass
 
 
 def find_systole_index(
