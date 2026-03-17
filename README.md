@@ -105,26 +105,19 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/your-org/holosegment.git
-cd holosegment
 ```
 
 Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
+source .venv/Script/activate
 ```
 
 Install in editable mode:
 
 ```bash
 pip install -e .
-```
-
-Optional (development tools):
-
-```bash
-pip install -e .[dev]
 ```
 
 ---
@@ -136,21 +129,21 @@ pip install -e .[dev]
 The CLI runs the full pipeline on a Holodoppler acquisition folder.
 
 ```bash
-holosegment run --input /path/to/holodoppler_folder --config config.json
+holosegment /path/to/holodoppler_folder --config config.json -v
 ```
 
 ### Arguments
 
 * `holodoppler_folder` : Path to Holodoppler folder
 * `--config` : Eyeflow configuration JSON file (optional)
-* `--debug` : Enable debug mode (save intermediate outputs)
+* `--verbose` : Enable debug mode (save intermediate outputs)
 
 ### Example
 
 ```bash
 holosegment ./data/patient_01 \
     --config ./configs/default.json \
-    --debug
+    -v
 ```
 
 ## GUI (Streamlit)
@@ -158,7 +151,7 @@ holosegment ./data/patient_01 \
 Launch the graphical interface:
 
 ```bash
-streamlit run app.py
+streamlit run holosegment/app.py
 ```
 
 The GUI allows you to:

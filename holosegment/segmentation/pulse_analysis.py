@@ -230,7 +230,6 @@ def compute_pre_artery_mask(video, vessel_mask, optic_disc_center, sampling_freq
     """
     # Step 1: Separate mask into branches
     labeled_vessels, _ = process_masks.get_labeled_vesselness(vessel_mask, *optic_disc_center)
-    output_manager.save("pulse_analysis", "labeled_vessels", labeled_vessels, "png")
 
     # image_utils.save_array_as_image(labeled_vessels, "all_20_label_Vesselness.png", foldername=step_mask_folder)
     num_branches = labeled_vessels.max()
@@ -249,7 +248,7 @@ def compute_pre_artery_mask(video, vessel_mask, optic_disc_center, sampling_freq
         branch_mean = np.mean(branch_pixels, axis=1)
         # Apply zero-phase filtering
         signals[i - 1, :] = filtfilt(b, a, branch_mean)
-        output_manager.save_plot("pulse_analysis", f"branch_{i}_signal", signals[i - 1, :], title=f"Branch {i} Temporal Signal")
+        # output_manager.debug("pulse_analysis", f"branch_{i}_signal", signals[i - 1, :], title=f"Branch {i} Temporal Signal")
 
     signals_n = (signals - signals.mean(axis=1, keepdims=True)) / signals.std(axis=1, keepdims=True)
 
@@ -358,7 +357,7 @@ def compute_correlation(video, mask):
     
     R = numerator / denominator
     
-    return R
+    return R, signal_centered
 
 # ================================ Diastole/Systole Analysis ================================ #
 
@@ -379,6 +378,12 @@ def validate_peaks(sys_idx_list, min_distance):
             i += 1
 
     return sys_idx_list
+
+
+
+
+def get_filtered_pulse():
+    pass
 
 
 def find_systole_index(

@@ -52,7 +52,10 @@ def overlay_masks(image, artery_mask=None, vein_mask=None):
 
 def init_session():
     if "pipeline" not in st.session_state:
-        st.session_state.pipeline = Pipeline(model_registry=ModelRegistryConfig(Path("models.yaml")))
+        model_registry = ModelRegistryConfig(Path("models.yaml"))
+        h5_schema = json.load(open("h5_schema.json"))
+        debug_config = json.load(open("debug_config.json"))
+        st.session_state.pipeline = Pipeline(model_registry=model_registry, h5_schema=h5_schema, debug_config=debug_config)
 
     if "input_folder" not in st.session_state:
         st.session_state.input_folder = None
@@ -60,19 +63,19 @@ def init_session():
     if "image" not in st.session_state:
         st.session_state.image = None
 
-    if "artery_mask" not in st.session_state:
+    if "retinal_artery_mask" not in st.session_state:
         st.session_state.artery_mask = None
 
-    if "vein_mask" not in st.session_state:
+    if "retinal_vein_mask" not in st.session_state:
         st.session_state.vein_mask = None
 
 
 init_session()
 
-binary_seg_model = st.selectbox("Selected binary segmentation model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("vessel_segmentation"))
-st.session_state.pipeline.ctx.change_model_for_task("vessel_segmentation", binary_seg_model)
-av_seg_model = st.selectbox("Selected artery/vein segmentation model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("artery_vein_segmentation"))
-st.session_state.pipeline.ctx.change_model_for_task("artery_vein_segmentation", av_seg_model)
+binary_seg_model = st.selectbox("Selected binary segmentation model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("retinal_vessel_segmentation"))
+st.session_state.pipeline.ctx.change_model_for_task("retinal_vessel_segmentation", binary_seg_model)
+av_seg_model = st.selectbox("Selected artery/vein segmentation model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("retinal_artery_vein_segmentation"))
+st.session_state.pipeline.ctx.change_model_for_task("retinal_artery_vein_segmentation", av_seg_model)
 optic_disc_model = st.selectbox("Selected optic disk detection model", options=st.session_state.pipeline.ctx.model_manager.get_model_name_list_for_task("optic_disc_detection"))
 st.session_state.pipeline.ctx.change_model_for_task("optic_disc_detection", optic_disc_model)
 
@@ -109,8 +112,8 @@ if st.button("Run Full Pipeline"):
         )
 
         st.session_state.image = pipeline.ctx.get("M0_ff_image")
-        st.session_state.artery_mask = pipeline.ctx.get("artery_mask")
-        st.session_state.vein_mask = pipeline.ctx.get("vein_mask")
+        st.session_state.artery_mask = pipeline.ctx.get("retinal_artery_mask")
+        st.session_state.vein_mask = pipeline.ctx.get("retinal_vein_mask")
 
         st.success("Pipeline completed.")
 

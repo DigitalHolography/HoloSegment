@@ -2,8 +2,9 @@ from typing import List
 import hashlib
 import json
 import numpy as np
+from abc import ABC
 
-class BaseStep:
+class BaseStep(ABC):
     """
     Base class for pipeline steps.
 
@@ -14,8 +15,8 @@ class BaseStep:
     """
 
     name: str = None
-    requires: List[str] = []
-    produces: List[str] = []
+    requires: set[str] = []
+    produces: set[str] = []
 
     def run(self, ctx):
         raise NotImplementedError
@@ -52,10 +53,23 @@ class BaseStep:
             return hashlib.sha256(val.tobytes()).hexdigest()
         return str(val)
     
+    def export(self, ctx):
+        """
+        Export step outputs using the output manager.
+        """
+        for key in self.produces:
+            if key in ctx.cache:
+                ctx.output_manager.save(self.name, key, ctx.cache)
+    
 class NestedStep(BaseStep):
     substeps: List[BaseStep] = []
 
+    def __init__(self):
+        self.produces, self.requires = self._resolve_produces_and_requires()
+        print(f"Initialized nested step '{self.name}' with requires: {self.requires} and produces: {self.produces}")
+
     def run(self, ctx):
+        print(f"Running nested step: {self.name}. Required inputs: {self.requires}, produces: {self.produces}")
         for step in self.substeps:
             step.run(ctx)
     
@@ -66,3 +80,14 @@ class NestedStep(BaseStep):
         for step in self.substeps:
             d.update(step._relevant_config(ctx))
         return d
+    
+    def _resolve_produces_and_requires(self):
+        """Combine produces and requires from all substeps."""
+        produces = set()
+        requires = set()
+        for step in reversed(self.substeps):
+            requires.difference_update(step.produces)  # If a substep produces something, it's not required from outside
+            produces.update(step.produces)
+            requires.update(step.requires)
+
+        return produces, requires

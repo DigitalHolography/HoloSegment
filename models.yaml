@@ -1,5 +1,5 @@
 iternet5_vesselness:
-  task: vessel_segmentation
+  task: retinal_vessel_segmentation
   hf_repo: DigitalHolography/iternet5_vesselness
   filename: iternet5_vesselness
   format: onnx
@@ -9,7 +9,7 @@ iternet5_vesselness:
   input_channels: ["M0_ff_image"]
 
 nnwnet_av_corr_diasys:
-  task: artery_vein_segmentation
+  task: retinal_artery_vein_segmentation
   hf_repo: DigitalHolography/nnwnet_av_corr_diasys
   filename: nnwnet_av_corr_diasys
   format: pt
@@ -19,7 +19,7 @@ nnwnet_av_corr_diasys:
   input_channels: ["M0_ff_image", "correlation", "diasys_image"]
 
 iternet5_av_diasys:
-  task: artery_vein_segmentation
+  task: retinal_artery_vein_segmentation
   hf_repo: DigitalHolography/iternet5_av_diasys
   filename: iternet5_av_diasys
   format: onnx

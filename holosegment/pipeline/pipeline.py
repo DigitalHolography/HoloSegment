@@ -1,3 +1,4 @@
+from holosegment.pipeline import step
 from holosegment.pipeline.dag import DAGEngine
 from holosegment.models.manager import ModelManager
 from holosegment.input_output.output_manager import OutputManager
@@ -10,7 +11,7 @@ from pathlib import Path
 from holosegment.pipeline.steps.load_moments import LoadMomentsStep
 from holosegment.pipeline.steps.preprocess import PreprocessStep
 from holosegment.pipeline.steps.optic_disc import OpticDiscDetectionStep
-from holosegment.pipeline.steps.vessel_segmentation import VesselSegmentation
+from holosegment.pipeline.steps.vessel_segmentation import RetinalVesselSegmentationStep, ChoroidalVesselSegmentationStep
 from holosegment.pipeline.steps.pulse_analysis import PulseAnalysisStep
 from holosegment.pipeline.steps.av_segmentation import AVSegmentationStep
 from holosegment.input_output.read_folder import HolodopplerFolder
@@ -25,8 +26,8 @@ class Context:
         - services (models, output, etc.)
     """
 
-    def __init__(self, config, model_manager):
-        self.eyeflow_config = config
+    def __init__(self, eyeflow_config, model_manager, h5_schema, debug_config=None):
+        self.eyeflow_config = eyeflow_config
         self.model_manager = model_manager
         self.model_instances = {}
         self.metadata = {
@@ -34,6 +35,8 @@ class Context:
         }
         self.folder = None
         self.output_manager = None
+        self.h5_schema = h5_schema
+        self.debug_config = debug_config or {}
 
         # Runtime data storage
         self.cache: Dict[str, Any] = {}
@@ -45,7 +48,7 @@ class Context:
 
     def load_input_folder(self, folder_path):
         self.folder = HolodopplerFolder(folder_path)
-        self.cache["input_path"] = folder_path
+        self.cache["h5_file"] = self.folder.h5_file
         self.holodoppler_config = json.load(open(self.folder.holodoppler_config))
         print(f"Using Holodoppler config file: {self.folder.holodoppler_config}")
 
@@ -75,7 +78,7 @@ class Context:
         if self.folder is None:
             raise RuntimeError("Input folder not loaded. Cannot determine output folder.")
         # Create a new output folder with an incremented index
-        self.output_manager = OutputManager(output_dir=self.folder.create_output_folder(), enabled=debug)
+        self.output_manager = OutputManager(output_folder=self.folder.create_output_folder(), h5_path=self.folder.h5_file, schema=self.h5_schema, debug_config=self.debug_config)
 
     def set(self, key: str, value: Any):
         self.cache[key] = value
@@ -92,10 +95,20 @@ class Context:
         self.cache.clear()
 
 class Pipeline:
-    def __init__(self, model_registry, config=None):
+    def __init__(self, model_registry, h5_schema, debug_config=None, eyeflow_config=None):
+        """
+        Initializes the pipeline with the given model registry and configuration.
+        Args:
+            model_registry: Configuration for available models.
+            h5_schema: Schema defining how to store outputs in HDF5.
+            debug_config: Configuration for debug outputs (optional). If None, outputs are manually saved.
+            eyeflow_config: Eyeflow configuration dictionary (optional) If None, the eyeflow configuration found in the input folder will be used.
+        """
         self.ctx = Context(
-            config=config,
+            eyeflow_config=eyeflow_config,
             model_manager=ModelManager(model_registry),
+            h5_schema=h5_schema,
+            debug_config=debug_config
         )
 
         # Register steps
@@ -103,7 +116,8 @@ class Pipeline:
             LoadMomentsStep(),
             PreprocessStep(),
             OpticDiscDetectionStep(),
-            VesselSegmentation(),
+            RetinalVesselSegmentationStep(),
+            ChoroidalVesselSegmentationStep(),
             PulseAnalysisStep(),
             AVSegmentationStep(),
         }
@@ -117,7 +131,7 @@ class Pipeline:
         self.ctx.load_input_folder(input_path)
 
     def run(self, targets=None, debug=True):
-        if not self.ctx.has("input_path"):
+        if not self.ctx.has("h5_file"):
             raise RuntimeError("Input path not set. Please load input folder before running the pipeline.")
         if self.ctx.eyeflow_config is None:
             raise RuntimeError("Configuration not loaded. Please load a configuration file before running the pipeline.")

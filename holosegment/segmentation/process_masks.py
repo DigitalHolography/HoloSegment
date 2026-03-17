@@ -109,30 +109,50 @@ def get_labeled_vesselness(mask, x_center, y_center, r1=0.1, r2=0.35, numCircles
 
     return labeled_vessels, edges
 
+# mask_diaphragm = process_masks.disk_mask(mask_vessel.shape[0], mask_vessel.shape[1], diaphragm_radius)
+# mask_circle = process_masks.disk_mask(mask_vessel.shape[0], mask_vessel.shape[1], diaphragm_radius, center = (x_center, y_center))
+
+
+# def clean_vessel_mask(mask_vessel, mask_circle=None, mask_diaphragm=None):
+#     if mask_circle is not None:
+#         mask_vessel = mask_vessel & ~mask_circle
+#     largest_connected_components = bwareafilt_largest(
+#             mask_vessel,
+#             connectivity=2  # 8-connectivity
+#         )
+#     if mask_diaphragm is not None:
+#         mask_vessel = mask_vessel & mask_diaphragm
+#     return mask_vessel & largest_connected_components
+
 def clean_vessel_mask(
     raw_mask,
     image_shape,
-    optic_disc_center,
-    diaphragm_radius,
-    crop_radius,
+    optic_disc_center=None,
+    diaphragm_radius=None,
+    crop_radius=None,
 ):
     height, width = image_shape
 
-    mask_diaphragm = disk_mask(
-        height, width, R1=diaphragm_radius
-    )
+    if diaphragm_radius is not None:
+        print(f"Applying diaphragm mask with radius {diaphragm_radius}")
+        mask_diaphragm = disk_mask(
+            height, width, R1=diaphragm_radius
+        )
 
-    mask_center = disk_mask(
-        height, width,
-        R1=crop_radius,
-        center=optic_disc_center
-    )
+    if crop_radius is not None:
+        optic_disc_center = optic_disc_center if optic_disc_center is not None else (width // 2, height // 2)
+        mask_center = disk_mask(
+            height, width,
+            R1=crop_radius,
+            center=optic_disc_center
+        )
 
+    mask = raw_mask & ~mask_center if crop_radius is not None else raw_mask
     largest_component = bwareafilt_largest(
-        raw_mask & ~mask_center,
+        mask,
         connectivity=2,
     )
 
-    clean = raw_mask & largest_component & mask_diaphragm
+    clean = raw_mask & largest_component & mask_diaphragm if diaphragm_radius is not None else raw_mask & largest_component
 
     return clean
