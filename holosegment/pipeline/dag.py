@@ -140,6 +140,8 @@ class DAGEngine:
 
         invalidated = set()
 
+        print(f"[DAG] Execution order: {steps_to_run}")
+
         for step_name in steps_to_run:
             step = self.steps[step_name]
 
