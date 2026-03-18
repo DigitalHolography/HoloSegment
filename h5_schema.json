@@ -25,5 +25,8 @@
             "center": "optic_disc_center",
             "axes": "optic_disc_axes"
         }
+    },
+    "analysis": {
+        "retinal_velocity_array": "retinal_vessel_velocity"
     }
 }

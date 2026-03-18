@@ -5,6 +5,7 @@ from scipy.signal import filtfilt, find_peaks, butter
 from skimage.filters import frangi
 from skimage.morphology import disk, dilation
 from skimage.restoration import inpaint
+from holosegment.pipeline.step import BaseStep
 
 import matplotlib.pyplot as plt
 
@@ -22,7 +23,7 @@ class VesselVelocityEstimatorStep(BaseStep):
         vein_mask = ctx.require("retinal_vein_mask")
         vessel_mask = artery_mask | vein_mask
 
-        fRMS = np.sqrt(moment2 / np.mean(moment0, axis=(-1,-2)))
+        fRMS = np.sqrt(moment2 / np.mean(moment0, axis=(-1,-2))[..., np.newaxis, np.newaxis])
         fRMSbkg = np.zeros(shape=fRMS.shape)
 
         mask = dilation(vessel_mask, disk(3)) #TODO add parameter
@@ -49,25 +50,29 @@ class VesselVelocityEstimatorStep(BaseStep):
         # ctx.set("fRMS_avg", np.mean(fRMS,axis=2))
         # ctx.set("fRMS_bkg_avg", np.mean(fRMS,axis=2))
 
-        def _elliptical_mask(ny, nx, radius_frac, xp):
+        def _elliptical_mask(ny, nx, radius_frac, center = None):
             radius_frac = max(0.0, min(1.0, float(radius_frac)))
             a = (nx / 2) * radius_frac
             b = (ny / 2) * radius_frac
 
-            Y, X = xp.ogrid[:ny, :nx]
-            cy, cx = ny / 2, nx / 2
+            Y, X = np.ogrid[:ny, :nx]
+
+            if center is None:
+                cy, cx = ny / 2, nx / 2
+            else:
+                cy, cx = center
 
             mask = ((X - cx) / a) ** 2 + ((Y - cy) / b) ** 2 <= 1.0
             return mask
-
+        
         sz = velocity_map.shape
 
-        section_mask = _elliptical_mask(sz[-2], sz[-1], 0.5, xp) & (~(_elliptical_mask(sz[-2], sz[-1], 0.2, xp)))
+        section_mask = _elliptical_mask(sz[-2], sz[-1], 0.5) & (~(_elliptical_mask(sz[-2], sz[-1], 0.2)))
 
-        artery_sig = np.sum(velocity_map * section_mask * mask_artery, axis=(-2,-1)) / np.nonzero(section_mask * mask_artery)
+        artery_sig = np.sum(velocity_map * section_mask * artery_mask, axis=(-2,-1)) / np.count_nonzero(section_mask * artery_mask)
 
-        vein_sig = np.sum(velocity_map * section_mask * mask_vein, axis=(-2,-1)) / np.nonzero(section_mask * mask_vein)
+        vein_sig = np.sum(velocity_map * section_mask * vein_mask, axis=(-2,-1)) / np.count_nonzero(section_mask * vein_mask)
 
         ctx.set("retinal_vessel_velocity", velocity_map)
         ctx.set("retinal_artery_velocity_signal", artery_sig)
-        ctx.set("retinal_vein_velocity_signal", velocity_map)
+        ctx.set("retinal_vein_velocity_signal", vein_sig)
