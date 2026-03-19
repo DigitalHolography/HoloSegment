@@ -9,12 +9,12 @@ from functools import partial
 import numpy as np
 
 class Preprocessor:
-    def __init__(self, config, moments):
+    def __init__(self, config, M0, M1, M2=None, SH=None):
         self.eyeflow_config = config
-        self.M0 = moments.M0
-        self.M1 = moments.M1
-        self.M2 = None
-        self.SH = moments.SH
+        self.M0 = M0
+        self.M1 = M1
+        self.M2 = M2
+        self.SH = SH
 
         self.M0_ff_video = None  # Cache for flatfield-corrected M0 video
         self.M0_ff_image = None  # Cache for flatfield-corrected M0
@@ -118,7 +118,7 @@ class Preprocessor:
         return 
 
 class PreprocessStep(BaseStep):
-    requires = {"moments"}
+    requires = {"moment0", "moment1", "moment2"}
     produces = {"M0_ff_video", "M0_ff_image", "M1_ff_image"}
     name = "preprocess"
 
@@ -134,9 +134,11 @@ class PreprocessStep(BaseStep):
         }
 
     def run(self, ctx):
-        moments = ctx.cache["moments"]
+        moment0 = ctx.cache["moment0"]
+        moment1 = ctx.cache["moment1"]
+        moment2 = ctx.cache["moment2"]
 
-        pre = Preprocessor(ctx.eyeflow_config, moments)
+        pre = Preprocessor(ctx.eyeflow_config, moment0, moment1)
         pre.preprocess()
 
         if pre.M0_ff_image is not None:

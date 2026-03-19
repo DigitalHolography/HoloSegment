@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 import os
 from holosegment.utils.image_utils import normalize_to_uint8
+import holosegment.utils.json_utils as json_utils
 import imageio
 import holosegment.input_output.debug_renderer as debug_renderer
 
@@ -13,10 +14,10 @@ class OutputManager:
         output_folder,
         h5_path,
         schema,
-        debug_config=None,
+        debug_config=None
     ):
         self.h5 = h5py.File(h5_path, "a")
-        self.schema = self._flatten_schema(schema)
+        self.schema = json_utils.flatten_schema(schema)
 
         self.debug_dir = Path(os.path.join(output_folder, "debug"))
         self.debug_dir.mkdir(exist_ok=True)
@@ -30,21 +31,6 @@ class OutputManager:
             "optic_disc": debug_renderer.OpticDiscRenderer(),
             "labeled_mask": debug_renderer.LabeledMaskRenderer()
         }
-
-
-    def _flatten_schema(self, schema):
-        flat = {}
-
-        def walk(node, path=""):
-            for k, v in node.items():
-                new_path = os.path.join(path, k) if path else k
-                if isinstance(v, dict):
-                    walk(v, new_path)
-                else:
-                    flat[v] = new_path
-
-        walk(schema)
-        return flat
 
     def save_h5(self, key, cache):
         if key not in self.schema:

@@ -1,15 +1,15 @@
-from holosegment.pipeline import step
+from pathlib import Path
+import os
+import h5py
+import json
+from typing import Any, Dict
+
 from holosegment.pipeline.dag import DAGEngine
 from holosegment.models.manager import ModelManager
 from holosegment.input_output.output_manager import OutputManager
-from typing import Any, Dict
-import json
 from holosegment.utils import json_utils
-from pathlib import Path
-import os
+from holosegment.input_output.read_moments import Moments
 
-
-from holosegment.pipeline.steps.load_moments import LoadMomentsStep
 from holosegment.pipeline.steps.preprocess import PreprocessStep
 from holosegment.pipeline.steps.optic_disc import OpticDiscDetectionStep
 from holosegment.pipeline.steps.vessel_segmentation import RetinalVesselSegmentationStep, ChoroidalVesselSegmentationStep
@@ -29,7 +29,7 @@ class Context:
         - services (models, output, etc.)
     """
 
-    def __init__(self, eyeflow_config, model_manager, h5_schema, debug_config=None):
+    def __init__(self, eyeflow_config, model_manager, h5_schema, debug_config=None, debug_mode=False):
         self.eyeflow_config = eyeflow_config
         self.model_manager = model_manager
         self.model_instances = {}
@@ -41,6 +41,7 @@ class Context:
         self.output_manager = None
         self.h5_schema = h5_schema
         self.debug_config = debug_config or {}
+        self.debug_mode = debug_mode
 
         # Runtime data storage
         self.cache: Dict[str, Any] = {}
@@ -49,6 +50,17 @@ class Context:
         eyeflow_config = json.load(open(config_path))
         self.eyeflow_config = json_utils.remove_spaces_from_keys(eyeflow_config) 
         print(f"Using Eyeflow config file: {config_path}")
+
+    def _read_h5_into_cache(self):
+        if "h5_file" not in self.cache:
+            raise RuntimeError("H5 file not loaded in context. Cannot read from H5.")
+        h5_file_path = self.cache["h5_file"]
+        h5_file = h5py.File(h5_file_path, "r")
+
+        schema = json_utils.flatten_schema(self.h5_schema)
+        for key, h5_path in schema.items():
+            if key not in self.cache and h5_path in h5_file:
+                self.cache[key] = h5_file[h5_path][()]
 
     def load_input_folder(self, folder_path):
         self.folder = HolodopplerFolder(folder_path)
@@ -59,6 +71,15 @@ class Context:
         if self.eyeflow_config is None:
             # Load configs from folder if not already loaded
             self.load_eyeflow_config(self.folder.eyeflow_config)
+
+        if self.debug_mode:
+            self._read_h5_into_cache()
+
+        reader = Moments(self.folder.h5_file)
+        reader.read_moments()
+        self.cache["moment0"] = reader.M0
+        self.cache["moment1"] = reader.M1
+        self.cache["moment2"] = reader.M2
 
     def load_folder_list(self, folder_list_path):
         if not os.path.exists(folder_list_path):
@@ -90,7 +111,7 @@ class Context:
         model_name = self.model_manager.get_current_model_name_for_task(task_name)
         return self.get_model(model_name)
     
-    def create_output_folder(self, debug=True):
+    def create_output_folder(self):
         if self.folder is None:
             raise RuntimeError("Input folder not loaded. Cannot determine output folder.")
         # Create a new output folder with an incremented index
@@ -111,7 +132,7 @@ class Context:
         self.cache.clear()
 
 class Pipeline:
-    def __init__(self, model_registry, h5_schema, debug_config=None, eyeflow_config=None):
+    def __init__(self, model_registry, h5_schema, debug_config=None, eyeflow_config=None, debug_mode=False):
         """
         Initializes the pipeline with the given model registry and configuration.
         Args:
@@ -119,17 +140,18 @@ class Pipeline:
             h5_schema: Schema defining how to store outputs in HDF5.
             debug_config: Configuration for debug outputs (optional). If None, outputs are manually saved.
             eyeflow_config: Eyeflow configuration dictionary (optional) If None, the eyeflow configuration found in the input folder will be used.
+            debug_mode: If True, steps outputs are read from the .h5, and only targeted steps are re-run. This is useful for debugging specific steps without having to re-run the entire pipeline.
         """
         self.ctx = Context(
             eyeflow_config=eyeflow_config,
             model_manager=ModelManager(model_registry),
             h5_schema=h5_schema,
-            debug_config=debug_config
+            debug_config=debug_config,
+            debug_mode=debug_mode
         )
 
         # Register steps
         self.steps = {
-            LoadMomentsStep(),
             PreprocessStep(),
             OpticDiscDetectionStep(),
             RetinalVesselSegmentationStep(),
@@ -140,7 +162,7 @@ class Pipeline:
             ArterialWaveformAnalysisStep(),
         }
 
-        self.engine = DAGEngine(self.steps)
+        self.engine = DAGEngine(self.steps, debug_mode=debug_mode)
 
     def get_step_names(self):
         return self.engine.execution_order
@@ -171,20 +193,20 @@ class Pipeline:
     def load_folder_list(self, folder_list_path):
         self.ctx.load_folder_list(folder_list_path)
 
-    def run(self, targets=None, debug=True):
+    def run(self, targets=None):
         if not self.ctx.has("h5_file"):
             raise RuntimeError("Input path not set. Please load input folder before running the pipeline.")
         if self.ctx.eyeflow_config is None:
             raise RuntimeError("Configuration not loaded. Please load a configuration file before running the pipeline.")
-        self.ctx.create_output_folder(debug=debug)
+        self.ctx.create_output_folder()
         self.engine.run(self.ctx, targets)
         return self.ctx.cache
-    
-    def run_batch(self, targets=None, debug=True):
+
+    def run_batch(self, targets=None):
         for folder in self.ctx.input_folder_list:
             try:
                 print(f"Processing folder: {folder}")
                 self.load_input(folder)
-                self.run(targets=targets, debug=debug)
+                self.run(targets=targets)
             except Exception as e:
                 print(f"Error processing folder {folder}: {e}")

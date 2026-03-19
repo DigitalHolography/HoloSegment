@@ -31,13 +31,14 @@ class DAGEngine:
     - Executes only required steps
     """
 
-    def __init__(self, steps: Iterable[BaseStep]):
+    def __init__(self, steps: Iterable[BaseStep], debug_mode=False):
         self.steps: Dict[str, BaseStep] = {s.name: s for s in steps}
 
         self._validate_unique_names()
         self.graph = self._build_dependency_graph()
         self.execution_order = self._topological_sort()
         self.invalidated = set()
+        self.debug_mode = debug_mode
 
     # ------------------------------------------------------------------
     # Graph construction
@@ -116,15 +117,18 @@ class DAGEngine:
         if not should_run:
             # If outputs missing -> must run
             if not all(ctx.has(k) for k in step.produces):
+                for k in step.produces:
+                    if not ctx.has(k):
+                        print(f"    - Missing output '{k}' for step '{step.name}'. Marking for execution.")
                 should_run = True
 
             new_hash = step.fingerprint(ctx)
             old_hash = ctx.metadata["step_hashes"].get(step.name)
 
-            if old_hash != new_hash:
+            if old_hash != new_hash and not self.debug_mode:
                 should_run = True
 
-        if should_run:
+        if should_run and not self.debug_mode:
             self.invalidated.add(step.name)
             self.invalidated.update(self._collect_downstream(step.name))
 
@@ -138,16 +142,16 @@ class DAGEngine:
         """
         Execute the DAG.
 
-        If targets is None:
-            → run entire pipeline
+        If targets is None, run entire pipeline
 
-        If targets provided:
-            → run only required subset
+        If targets provided, run only required subset
         """
 
         if targets is None:
             steps_to_run = self.execution_order
         else:
+            if self.debug_mode:
+                self.invalidated.update(targets)
             steps_to_run = self._resolve_required_steps(targets)
 
         print(f"[DAG] Execution order: {steps_to_run}")
@@ -164,9 +168,10 @@ class DAGEngine:
                 step.export(ctx)
                 ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
 
-                    # Invalidate downstream
-                downstream = self._collect_downstream(step_name)
-                self.invalidated.update(downstream)
+                # Invalidate downstream
+                if not self.debug_mode:
+                    downstream = self._collect_downstream(step_name)
+                    self.invalidated.update(downstream)
                 continue
 
             if not self._should_run(step, ctx):

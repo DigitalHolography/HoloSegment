@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 class VesselVelocityEstimatorStep(BaseStep):
     name = "retinal_vessel_velocity_estimator"
-    requires = {"moments", "retinal_artery_mask", "retinal_vein_mask", "optic_disc_center"}
+    requires = {"moment0", "moment2", "retinal_artery_mask", "retinal_vein_mask", "optic_disc_center"}
     produces = {"retinal_vessel_velocity","velocity_map_avg","fRMS_avg","fRMS_bkg_avg","retinal_artery_velocity_signal","retinal_vein_velocity_signal"}
 
     def _relevant_config(self, ctx):
@@ -24,9 +24,8 @@ class VesselVelocityEstimatorStep(BaseStep):
     def run(self, ctx):
 
         # ---- Requires ----
-        moments = ctx.require("moments")
-        moment2 = moments.M2
-        moment0 = moments.M0
+        moment0 = ctx.require("moment0")
+        moment2 = ctx.require("moment2")
 
         artery_mask = ctx.require("retinal_artery_mask")
         vein_mask = ctx.require("retinal_vein_mask")
