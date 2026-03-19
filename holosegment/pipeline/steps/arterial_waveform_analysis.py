@@ -15,6 +15,10 @@ class ArterialWaveformAnalysisStep(BaseStep):
     requires = {"retinal_artery_velocity_signal"}
     produces = {"retinal_artery_velocity_signal_filtered","retinal_artery_velocity_signal_filtered_perbeat","beat_indices","time_per_beat"}
 
+    def _relevant_config(self, ctx):
+        return {"fs": ctx.holodoppler_config["fs"],
+                "stride" : ctx.holodoppler_config["batch_stride"]}
+    
     def find_systole_index(self, pulse_artery):
         Wn = 0.5  # cutoff frequency in 0 1 Niquist freq TODO parametrize
         N = 1     # filter order TODO parametrize
@@ -61,10 +65,12 @@ class ArterialWaveformAnalysisStep(BaseStep):
             sig_perbeat[i,:] = beat_sig_interp
         
         return sig_perbeat
-
+    
     def run(self, ctx):
         # ---- Requires ----
         sig = ctx.require("retinal_artery_velocity_signal")
+        fs = ctx.holodoppler_config["fs"]
+        stride = ctx.holodoppler_config["batch_stride"]
 
         peaks, sig_filtered = self.find_systole_index(sig)
 
@@ -73,4 +79,4 @@ class ArterialWaveformAnalysisStep(BaseStep):
         ctx.set("retinal_artery_velocity_signal_filtered_perbeat",sig_perbeat)
         ctx.set("retinal_artery_velocity_signal_filtered",sig_filtered)
         ctx.set("beat_indices", peaks)
-        ctx.set("time_per_beat", np.diff(peaks) * 256/37000) # TODO parametrize look for params
+        ctx.set("time_per_beat", np.diff(peaks) * stride/fs) # TODO parametrize look for params

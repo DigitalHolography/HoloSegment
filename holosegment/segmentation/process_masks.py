@@ -149,7 +149,7 @@ def clean_vessel_mask(
     height, width = image_shape
 
     if diaphragm_radius is not None:
-        print(f"Applying diaphragm mask with radius {diaphragm_radius}")
+        print(f"    - Applying diaphragm mask with radius {diaphragm_radius}")
         mask_diaphragm = disk_mask(
             height, width, R1=diaphragm_radius
         )

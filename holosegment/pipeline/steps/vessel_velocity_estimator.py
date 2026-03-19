@@ -18,6 +18,9 @@ class VesselVelocityEstimatorStep(BaseStep):
     requires = {"moments", "retinal_artery_mask", "retinal_vein_mask", "optic_disc_center"}
     produces = {"retinal_vessel_velocity","velocity_map_avg","fRMS_avg","fRMS_bkg_avg","retinal_artery_velocity_signal","retinal_vein_velocity_signal"}
 
+    def _relevant_config(self, ctx):
+        return {"LocalBackgroundDist": ctx.eyeflow_config["PulseAnalysis"]["LocalBackgroundDist"]}
+
     def run(self, ctx):
 
         # ---- Requires ----
@@ -34,6 +37,8 @@ class VesselVelocityEstimatorStep(BaseStep):
         fRMS = np.sqrt(moment2 / mean_m0)
 
         # Inpaint fRMS to estimate background
+        local_background_dist = ctx.eyeflow_config["PulseAnalysis"]["LocalBackgroundDist"]
+        print(local_background_dist)
         mask = dilation(vessel_mask, disk(3)) #TODO add parameter
 
         n_jobs = joblib.cpu_count() #TODO add parameter for number of parallel jobs
@@ -44,6 +49,8 @@ class VesselVelocityEstimatorStep(BaseStep):
             return inpaint.inpaint_biharmonic(frame, mask)
         
         fRMSbkg = run_in_parallel(partial(_inpaint_frame, mask=mask), fRMS, n_jobs=n_jobs)
+
+        # fRMSbkg = np.stack(np.array([inpaint.inpaint_biharmonic(frame, mask) for frame in fRMS]), axis=0)
 
         # Velocity estimation
         A = fRMS**2 - fRMSbkg**2
