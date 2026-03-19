@@ -2,6 +2,7 @@
 
 from collections import defaultdict, deque
 from typing import Dict, List, Iterable
+import time
 
 
 class BaseStep:
@@ -147,9 +148,16 @@ class DAGEngine:
 
             if step_name in invalidated:
                 print(f"[DAG] Running (invalidated): {step.name}")
+                start_time = time.time()
                 step.run(ctx)
+                elapsed = time.time() - start_time
+                print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
                 step.export(ctx)
                 ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
+
+                    # Invalidate downstream
+                downstream = self._collect_downstream(step_name)
+                invalidated.update(downstream)
                 continue
 
             if not self._should_run(step, ctx):
@@ -157,12 +165,14 @@ class DAGEngine:
                 continue
 
             print(f"[DAG] Running step: {step.name}")
+            start_time = time.time()
             step.run(ctx)
+            elapsed = time.time() - start_time
+            step.export(ctx)
+            print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
             ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
 
-            # Invalidate downstream
-            downstream = self._collect_downstream(step_name)
-            invalidated.update(downstream)
+            
 
     # ------------------------------------------------------------------
     # Partial execution support
