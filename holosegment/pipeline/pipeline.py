@@ -140,6 +140,26 @@ class Pipeline:
 
         self.engine = DAGEngine(self.steps)
 
+    def get_step_names(self):
+        return self.engine.execution_order
+    
+    def is_cached(self, step_name):
+        step = self.engine.steps[step_name]
+        return self.engine._should_run(step, self.ctx) == False
+    
+    def resolve_execution_graph(self, targets=None):
+        if targets == []:
+            return []
+
+        if targets is None:
+            return self.engine.execution_order
+
+        required_steps = self.engine._resolve_required_steps(targets)
+        return required_steps
+    
+    def get_downstream_steps(self, step_name):
+        return self.engine._collect_downstream(step_name)
+
     def load_eyeflow_config(self, config_path):
         self.ctx.load_eyeflow_config(config_path)
 

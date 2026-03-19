@@ -44,6 +44,12 @@ def main():
         action='store_true',
         help='Process multiple folders. Folders are either listed in a text file (one folder path per line) or provided as subfolders of the specified path.'
     )
+
+    parser.add_argument(
+        '-t', '--targets',
+        nargs='+',
+        help='List of target steps to run'
+    )
     
     args = parser.parse_args()
     
@@ -61,12 +67,14 @@ def main():
     if args.config:
         pipeline.load_eyeflow_config(args.config)
 
+    targets = args.targets if args.targets else None
+
     if args.batch:
         pipeline.load_folder_list(input_folder)
-        pipeline.run_batch(debug=debug)
+        pipeline.run_batch(targets=targets, debug=debug)
     else:
         pipeline.load_input(input_folder)
-        pipeline.run(debug=debug)
+        pipeline.run(targets=targets, debug=debug)
 
     return 0
 

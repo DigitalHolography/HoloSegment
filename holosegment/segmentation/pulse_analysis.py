@@ -541,7 +541,7 @@ def compute_diasys(video, pulse_artery, sampling_frequency, pulse_vein=None):
     sysindexes = sorted(set(i for i in sysindexes if 0 <= i < numFrames))
     diasindexes = sorted(set(i for i in diasindexes if 0 <= i < numFrames))
 
-    print(f"Identified {len(sysindexes)} systole frames and {len(diasindexes)} diastole frames.")
+    print(f"    - Identified {len(sysindexes)} systole frames and {len(diasindexes)} diastole frames.")
 
     if len(sysindexes) == 0:
         sysindexes = [0]

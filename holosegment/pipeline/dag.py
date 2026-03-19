@@ -2,6 +2,7 @@
 
 from collections import defaultdict, deque
 from typing import Dict, List, Iterable
+import time
 
 
 class BaseStep:
@@ -36,6 +37,7 @@ class DAGEngine:
         self._validate_unique_names()
         self.graph = self._build_dependency_graph()
         self.execution_order = self._topological_sort()
+        self.invalidated = set()
 
     # ------------------------------------------------------------------
     # Graph construction
@@ -109,18 +111,28 @@ class DAGEngine:
     # ------------------------------------------------------------------
 
     def _should_run(self, step, ctx):
+        should_run = step.name in self.invalidated
 
-        # If outputs missing → must run
-        if not all(ctx.has(k) for k in step.produces):
-            return True
+        if not should_run:
+            # If outputs missing -> must run
+            if not all(ctx.has(k) for k in step.produces):
+                should_run = True
 
-        new_hash = step.fingerprint(ctx)
-        old_hash = ctx.metadata["step_hashes"].get(step.name)
+            new_hash = step.fingerprint(ctx)
+            old_hash = ctx.metadata["step_hashes"].get(step.name)
 
-        if old_hash != new_hash:
-            return True
+            if old_hash != new_hash:
+                should_run = True
 
-        return False
+        if should_run:
+            self.invalidated.add(step.name)
+            self.invalidated.update(self._collect_downstream(step.name))
+
+            for key in step.produces:
+                if key in ctx.cache:
+                    del ctx.cache[key]
+
+        return should_run
 
     def run(self, ctx, targets: List[str] = None):
         """
@@ -138,16 +150,23 @@ class DAGEngine:
         else:
             steps_to_run = self._resolve_required_steps(targets)
 
-        invalidated = set()
+        print(f"[DAG] Execution order: {steps_to_run}")
 
         for step_name in steps_to_run:
             step = self.steps[step_name]
 
-            if step_name in invalidated:
+            if step_name in self.invalidated:
                 print(f"[DAG] Running (invalidated): {step.name}")
+                start_time = time.time()
                 step.run(ctx)
+                elapsed = time.time() - start_time
+                print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
                 step.export(ctx)
                 ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
+
+                    # Invalidate downstream
+                downstream = self._collect_downstream(step_name)
+                self.invalidated.update(downstream)
                 continue
 
             if not self._should_run(step, ctx):
@@ -155,12 +174,15 @@ class DAGEngine:
                 continue
 
             print(f"[DAG] Running step: {step.name}")
+            start_time = time.time()
             step.run(ctx)
+            elapsed = time.time() - start_time
+            step.export(ctx)
+            print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
             ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
 
-            # Invalidate downstream
-            downstream = self._collect_downstream(step_name)
-            invalidated.update(downstream)
+        self.invalidated.clear()
+            
 
     # ------------------------------------------------------------------
     # Partial execution support

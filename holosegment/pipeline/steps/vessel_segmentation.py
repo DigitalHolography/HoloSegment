@@ -68,11 +68,11 @@ class RetinalVesselSegmentationStep(VesselSegmentationStep):
         method = ctx.eyeflow_config.get("Mask", "").get("VesselSegmentationMethod", "AI")
 
         if method == "AI":
-            print("Using deep learning model for vessel segmentation.")
+            print("    - Use deep learning model for vessel segmentation.")
             return self.deep_segmentation(ctx)
 
         if method == "frangi":
-            print("Using Frangi filter for vessel segmentation.")
+            print("    - Use Frangi filter for vessel segmentation.")
             return self.frangi_segmentation(ctx)
         
     def run(self, ctx):
