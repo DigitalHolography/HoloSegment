@@ -26,5 +26,6 @@
     "retinal_vein_velocity_signal": "signal",
     "velocity_map_avg": "imageandcolorbar",
     "fRMS_avg": "imageandcolorbar",
-    "fRMS_bkg_avg": "imageandcolorbar"
+    "fRMS_bkg_avg": "imageandcolorbar",
+    "outlier_frames_mask" : "signal"
 }

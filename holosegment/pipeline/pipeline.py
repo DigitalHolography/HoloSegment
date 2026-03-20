@@ -18,6 +18,7 @@ from holosegment.pipeline.steps.av_segmentation import AVSegmentationStep
 from holosegment.input_output.read_folder import HolodopplerFolder
 from holosegment.pipeline.steps.vessel_velocity_estimator import VesselVelocityEstimatorStep
 from holosegment.pipeline.steps.arterial_waveform_analysis import ArterialWaveformAnalysisStep
+from holosegment.pipeline.steps.outliers_detection import OutliersDetectionStep
 
 class Context:
     """
@@ -138,6 +139,7 @@ class Pipeline:
             AVSegmentationStep(),
             VesselVelocityEstimatorStep(),
             ArterialWaveformAnalysisStep(),
+            OutliersDetectionStep(),
         }
 
         self.engine = DAGEngine(self.steps)
