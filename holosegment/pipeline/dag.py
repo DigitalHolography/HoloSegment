@@ -112,6 +112,14 @@ class DAGEngine:
     # ------------------------------------------------------------------
 
     def _should_run(self, step, ctx):
+        """Determine if a step needs to be executed.
+        A step should run if:
+        1. It is explicitly invalidated (e.g. due to upstream changes).
+        2. Any of its outputs are missing from the cache.
+        3. The fingerprint hash of the step's relevant config or inputs has changed since last execution.
+
+        If in debug mode, steps will be skipped if outputs are present, regardless of hash changes, allowing to bypass expensive computations while iterating on the pipeline.
+        """
         should_run = step.name in self.invalidated
 
         if not should_run:
@@ -129,7 +137,7 @@ class DAGEngine:
             if old_hash != new_hash and not self.debug_mode:
                 should_run = True
 
-        if should_run and not self.debug_mode:
+        if should_run:
             self.invalidated.add(step.name)
             self.invalidated.update(self._collect_downstream(step.name))
 
@@ -146,6 +154,8 @@ class DAGEngine:
         If targets is None, run entire pipeline
 
         If targets provided, run only required subset
+
+
         """
 
         if targets is None:
@@ -170,9 +180,8 @@ class DAGEngine:
                 ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
 
                 # Invalidate downstream
-                if not self.debug_mode:
-                    downstream = self._collect_downstream(step_name)
-                    self.invalidated.update(downstream)
+                downstream = self._collect_downstream(step_name)
+                self.invalidated.update(downstream)
                 continue
 
             if not self._should_run(step, ctx):

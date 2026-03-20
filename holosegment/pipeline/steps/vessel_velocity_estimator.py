@@ -37,8 +37,7 @@ class VesselVelocityEstimatorStep(BaseStep):
 
         # Inpaint fRMS to estimate background
         local_background_dist = ctx.eyeflow_config["PulseAnalysis"]["LocalBackgroundDist"]
-        print(local_background_dist)
-        mask = dilation(vessel_mask, disk(3)) #TODO add parameter
+        mask = dilation(vessel_mask, disk(local_background_dist)) #TODO add parameter
 
         n_jobs = joblib.cpu_count() #TODO add parameter for number of parallel jobs
 
@@ -69,7 +68,6 @@ class VesselVelocityEstimatorStep(BaseStep):
         #     hist_matrix[i,:] = hist
 
         # ctx.set("hist_matrix", hist_matrix)
-        print("setting debug variables")
         ctx.set("velocity_map_avg", np.mean(velocity_map,axis=0))
         ctx.set("fRMS_avg", np.mean(fRMS,axis=0))
         ctx.set("fRMS_bkg_avg", np.mean(fRMSbkg,axis=0))

@@ -74,7 +74,6 @@ class HolodopplerFolder:
         os.makedirs(debug_folder, exist_ok=True)
         # os.makedirs(input_folder, exist_ok=True)
         
-        print(f"Created output folder: {new_output_folder}")
         self.output_folder = new_output_folder
         return new_output_folder
     

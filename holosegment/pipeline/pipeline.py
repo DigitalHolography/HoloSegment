@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import time
 import h5py
 import json
 from typing import Any, Dict
@@ -203,10 +204,15 @@ class Pipeline:
         if self.ctx.eyeflow_config is None:
             raise RuntimeError("Configuration not loaded. Please load a configuration file before running the pipeline.")
         self.ctx.create_output_folder()
+        print(f"[Pipeline] Created output folder: {self.ctx.output_manager.output_dir}")
+        start_time = time.time()
         self.engine.run(self.ctx, targets)
+        elapsed = time.time() - start_time
+        print(f"[Pipeline] Finished execution in {elapsed:.2f}s")
 
         # If in debug mode, save the entire cache to the H5 file after execution
         if self.ctx.debug_mode:
+            print(f"[Pipeline] Saving cache to H5 file.")
             self.ctx.output_manager.save_cache(self.ctx.cache)
         return self.ctx.cache
 
