@@ -36,7 +36,8 @@
         "velocitysignal_per_beat": "retinal_artery_velocity_signal_filtered_perbeat",
         "velocitysignal_filtered": "retinal_artery_velocity_signal_filtered",
         "beat_indices": "beat_indices",
-        "time_per_beat": "time_per_beat"
+        "time_per_beat": "time_per_beat",
+        "outlier_frames_mask": "outlier_frames_mask"
 
     }
 }
