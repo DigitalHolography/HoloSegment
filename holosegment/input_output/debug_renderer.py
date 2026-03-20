@@ -1,6 +1,7 @@
 import imageio
 from holosegment.utils.image_utils import normalize_to_uint8, save_numpy_as_avi, save_labeled_branches
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 import numpy as np
 
 class DebugRenderer:
@@ -10,6 +11,20 @@ class DebugRenderer:
 class ImageRenderer(DebugRenderer):
     def render(self, key, cache, path):
         imageio.imwrite(path, normalize_to_uint8(cache.get(key)))
+
+class ImageColorbarRenderer(DebugRenderer):
+
+    def save_image_with_colorbar(self, path, image_data):
+        norm = Normalize(vmin=np.min(image_data), vmax=np.max(image_data))
+        fig, ax = plt.subplots(figsize=(6, 6))
+        cax = ax.imshow(image_data, cmap='viridis', norm=norm)
+        fig.colorbar(cax, ax=ax, orientation='vertical', fraction=0.03, pad=0.04)
+        ax.axis('off')
+        plt.savefig(path, bbox_inches='tight', pad_inches=0, transparent=True, dpi=300)
+        plt.close(fig)
+
+    def render(self, key, cache, path):
+        save_image_with_colorbar(path, cache.get(key))
 
 class SignalRenderer(DebugRenderer):
     def render(self, key, cache, path):

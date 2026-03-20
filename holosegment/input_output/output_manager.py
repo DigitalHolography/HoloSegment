@@ -24,6 +24,7 @@ class OutputManager:
 
         self.renderers = {
             "image": debug_renderer.ImageRenderer(),
+            "imageandcolorbar": debug_renderer.ImageColorbarRenderer(),
             "mask": debug_renderer.ImageRenderer(),
             "signal": debug_renderer.SignalRenderer(),
             "video": debug_renderer.VideoRenderer(),
