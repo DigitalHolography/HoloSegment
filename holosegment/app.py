@@ -104,25 +104,33 @@ if st.button("Browse Folder"):
 def on_step_toggle(step):
     pipeline = st.session_state.pipeline
 
+    if not st.session_state[f"ui_{step}"]:
+        downstream = pipeline.get_downstream_steps(step)
+        for s in downstream:
+            st.session_state[f"ui_{s}"] = False
+
     selected = [
         s for s in pipeline.get_step_names()
         if st.session_state[f"ui_{s}"]
     ]
 
-    if step in selected:
-        resolved = pipeline.resolve_execution_graph(selected)
+    pipeline.set_targets(selected)
+    steps_to_run = pipeline.engine.steps_to_run
+    for s in pipeline.get_step_names():
+        st.session_state[f"ui_{s}"] = s in steps_to_run
 
-        for s in pipeline.get_step_names():
-            st.session_state[f"ui_{s}"] = s in resolved
-    else:
-        downstream = pipeline.get_downstream_steps(step)
-        for s in downstream:
-            st.session_state[f"ui_{s}"] = False
+    # if step in selected:
+    #     resolved = pipeline.resolve_execution_graph(selected)
 
-    st.session_state.selected_targets = [
-        s for s in pipeline.get_step_names()
-        if st.session_state[f"ui_{s}"]
-    ]
+    #     for s in pipeline.get_step_names():
+    #         st.session_state[f"ui_{s}"] = s in resolved
+    # else:
+
+
+    # st.session_state.selected_targets = [
+    #     s for s in pipeline.get_step_names()
+    #     if st.session_state[f"ui_{s}"]
+    # ]
 
 
 if st.session_state.input_folder is not None:
@@ -138,6 +146,8 @@ if st.session_state.input_folder is not None:
         st.session_state.ui_steps_initialized = True
 
     for step in all_steps:
+        # Color code steps based on cache status: green if cached, yellow if not cached
+        # The last checked step is targeted for execution, so it is yellow.
         if pipeline.is_cached(step):
             label = f"🟢 {step}"
         else:

@@ -38,6 +38,7 @@ class DAGEngine:
         self.graph = self._build_dependency_graph()
         self.execution_order = self._topological_sort()
         self.invalidated = set()
+        self.steps_to_run = None
         self.debug_mode = debug_mode
 
     # ------------------------------------------------------------------
@@ -134,18 +135,32 @@ class DAGEngine:
             new_hash = step.fingerprint(ctx)
             old_hash = ctx.metadata["step_hashes"].get(step.name)
 
+            # If hashes differ, must run
             if old_hash != new_hash and not self.debug_mode:
                 should_run = True
 
+        # If should run, invalidate downstream to ensure following steps also re-run
         if should_run:
             self.invalidated.add(step.name)
             self.invalidated.update(self._collect_downstream(step.name))
 
-            for key in step.produces:
-                if key in ctx.cache:
-                    del ctx.cache[key]
-
         return should_run
+    
+    def set_targets(self, targets: List[str]):
+        """
+        Set specific targets for execution, invalidating necessary steps.
+        """
+        self.invalidated.clear()
+        if targets is None:
+            self.steps_to_run = self.execution_order
+        else:
+            if self.debug_mode:
+                self.invalidated.update(targets)
+            self.steps_to_run = self._resolve_required_steps(targets)
+        
+        # Last target is always invalidated to ensure it runs, even if cached
+        if self.steps_to_run is not None and len(self.steps_to_run) > 0:
+            self.invalidated.add(self.steps_to_run[-1])
 
     def run(self, ctx, targets: List[str] = None):
         """
@@ -154,20 +169,13 @@ class DAGEngine:
         If targets is None, run entire pipeline
 
         If targets provided, run only required subset
-
-
         """
+        if self.steps_to_run is None:
+            self.set_targets(targets)
 
-        if targets is None:
-            steps_to_run = self.execution_order
-        else:
-            if self.debug_mode:
-                self.invalidated.update(targets)
-            steps_to_run = self._resolve_required_steps(targets)
+        print(f"[DAG] Execution order: {self.steps_to_run}")
 
-        print(f"[DAG] Execution order: {steps_to_run}")
-
-        for step_name in steps_to_run:
+        for step_name in self.steps_to_run:
             step = self.steps[step_name]
 
             if step_name in self.invalidated:
@@ -197,6 +205,7 @@ class DAGEngine:
             ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
 
         self.invalidated.clear()
+        self.steps_to_run = None
             
 
     # ------------------------------------------------------------------

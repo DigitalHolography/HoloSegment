@@ -56,8 +56,8 @@ class OutputManager:
             if path in h5:
                 del h5[path]
 
-                value = cache.get(key)
-                h5.create_dataset(path, data=value)
+            value = cache.get(key)
+            h5.create_dataset(path, data=value)
 
     def output_cache(self, step_name, key, cache, type=None):
         """Outputs a value from the cache for debugging purposes based on the provided output configuration."""

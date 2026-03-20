@@ -200,6 +200,9 @@ class Pipeline:
     def load_folder_list(self, folder_list_path):
         self.ctx.load_folder_list(folder_list_path)
 
+    def set_targets(self, targets):
+        self.engine.set_targets(targets)
+
     def run(self, targets=None):
         if not self.ctx.has("input_file"):
             raise RuntimeError("Input path not set. Please load input folder before running the pipeline.")
