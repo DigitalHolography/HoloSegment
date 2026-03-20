@@ -31,13 +31,15 @@ class DAGEngine:
     - Executes only required steps
     """
 
-    def __init__(self, steps: Iterable[BaseStep]):
+    def __init__(self, steps: Iterable[BaseStep], debug_mode=False):
         self.steps: Dict[str, BaseStep] = {s.name: s for s in steps}
 
         self._validate_unique_names()
         self.graph = self._build_dependency_graph()
         self.execution_order = self._topological_sort()
         self.invalidated = set()
+        self.steps_to_run = None
+        self.debug_mode = debug_mode
 
     # ------------------------------------------------------------------
     # Graph construction
@@ -111,48 +113,69 @@ class DAGEngine:
     # ------------------------------------------------------------------
 
     def _should_run(self, step, ctx):
+        """Determine if a step needs to be executed.
+        A step should run if:
+        1. It is explicitly invalidated (e.g. due to upstream changes).
+        2. Any of its outputs are missing from the cache.
+        3. The fingerprint hash of the step's relevant config or inputs has changed since last execution.
+
+        If in debug mode, steps will be skipped if outputs are present, regardless of hash changes, allowing to bypass expensive computations while iterating on the pipeline.
+        """
         should_run = step.name in self.invalidated
 
         if not should_run:
             # If outputs missing -> must run
             if not all(ctx.has(k) for k in step.produces):
+                if self.debug_mode:
+                    for k in step.produces:
+                        if not ctx.has(k):
+                            print(f"    - Missing output '{k}' for step '{step.name}'. Marking for execution.")
                 should_run = True
 
             new_hash = step.fingerprint(ctx)
             old_hash = ctx.metadata["step_hashes"].get(step.name)
 
-            if old_hash != new_hash:
+            # If hashes differ, must run
+            if old_hash != new_hash and not self.debug_mode:
                 should_run = True
 
+        # If should run, invalidate downstream to ensure following steps also re-run
         if should_run:
             self.invalidated.add(step.name)
             self.invalidated.update(self._collect_downstream(step.name))
 
-            for key in step.produces:
-                if key in ctx.cache:
-                    del ctx.cache[key]
-
         return should_run
+    
+    def set_targets(self, targets: List[str]):
+        """
+        Set specific targets for execution, invalidating necessary steps.
+        """
+        self.invalidated.clear()
+        if targets is None:
+            self.steps_to_run = self.execution_order
+        else:
+            if self.debug_mode:
+                self.invalidated.update(targets)
+            self.steps_to_run = self._resolve_required_steps(targets)
+        
+        # Last target is always invalidated to ensure it runs, even if cached
+        if self.steps_to_run is not None and len(self.steps_to_run) > 0:
+            self.invalidated.add(self.steps_to_run[-1])
 
     def run(self, ctx, targets: List[str] = None):
         """
         Execute the DAG.
 
-        If targets is None:
-            → run entire pipeline
+        If targets is None, run entire pipeline
 
-        If targets provided:
-            → run only required subset
+        If targets provided, run only required subset
         """
+        if self.steps_to_run is None:
+            self.set_targets(targets)
 
-        if targets is None:
-            steps_to_run = self.execution_order
-        else:
-            steps_to_run = self._resolve_required_steps(targets)
+        print(f"[DAG] Execution order: {self.steps_to_run}")
 
-        print(f"[DAG] Execution order: {steps_to_run}")
-
-        for step_name in steps_to_run:
+        for step_name in self.steps_to_run:
             step = self.steps[step_name]
 
             if step_name in self.invalidated:
@@ -164,13 +187,14 @@ class DAGEngine:
                 step.export(ctx)
                 ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
 
-                    # Invalidate downstream
+                # Invalidate downstream
                 downstream = self._collect_downstream(step_name)
                 self.invalidated.update(downstream)
                 continue
 
             if not self._should_run(step, ctx):
                 print(f"[DAG] Skipping (valid cache): {step.name}")
+                step.export(ctx)
                 continue
 
             print(f"[DAG] Running step: {step.name}")
@@ -182,6 +206,7 @@ class DAGEngine:
             ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
 
         self.invalidated.clear()
+        self.steps_to_run = None
             
 
     # ------------------------------------------------------------------

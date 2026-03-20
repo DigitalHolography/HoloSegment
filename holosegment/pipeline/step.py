@@ -66,7 +66,6 @@ class NestedStep(BaseStep):
 
     def __init__(self):
         self.produces, self.requires = self._resolve_produces_and_requires()
-        print(f"Initialized nested step '{self.name}' with produces={self.produces} and requires={self.requires}")
 
     def run(self, ctx):
         for step in self.substeps:

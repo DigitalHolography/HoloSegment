@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 class VesselVelocityEstimatorStep(BaseStep):
     name = "retinal_vessel_velocity_estimator"
-    requires = {"moments", "retinal_artery_mask", "retinal_vein_mask", "optic_disc_center"}
+    requires = {"moment0", "moment2", "retinal_artery_mask", "retinal_vein_mask", "optic_disc_center"}
     produces = {"retinal_vessel_velocity","velocity_map_avg","fRMS_avg","fRMS_bkg_avg","retinal_artery_velocity_signal","retinal_vein_velocity_signal"}
 
     def _relevant_config(self, ctx):
@@ -24,9 +24,8 @@ class VesselVelocityEstimatorStep(BaseStep):
     def run(self, ctx):
 
         # ---- Requires ----
-        moments = ctx.require("moments")
-        moment2 = moments.M2
-        moment0 = moments.M0
+        moment0 = ctx.require("moment0")
+        moment2 = ctx.require("moment2")
 
         artery_mask = ctx.require("retinal_artery_mask")
         vein_mask = ctx.require("retinal_vein_mask")
@@ -38,8 +37,7 @@ class VesselVelocityEstimatorStep(BaseStep):
 
         # Inpaint fRMS to estimate background
         local_background_dist = ctx.eyeflow_config["PulseAnalysis"]["LocalBackgroundDist"]
-        print(local_background_dist)
-        mask = dilation(vessel_mask, disk(3)) #TODO add parameter
+        mask = dilation(vessel_mask, disk(local_background_dist)) #TODO add parameter
 
         n_jobs = joblib.cpu_count() #TODO add parameter for number of parallel jobs
 
@@ -70,7 +68,6 @@ class VesselVelocityEstimatorStep(BaseStep):
         #     hist_matrix[i,:] = hist
 
         # ctx.set("hist_matrix", hist_matrix)
-        print("setting debug variables")
         ctx.set("velocity_map_avg", np.mean(velocity_map,axis=0))
         ctx.set("fRMS_avg", np.mean(fRMS,axis=0))
         ctx.set("fRMS_bkg_avg", np.mean(fRMSbkg,axis=0))
