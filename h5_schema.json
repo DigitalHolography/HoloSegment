@@ -38,6 +38,5 @@
         "beat_indices": "beat_indices",
         "time_per_beat": "time_per_beat",
         "outlier_frames_mask": "outlier_frames_mask"
-
     }
 }

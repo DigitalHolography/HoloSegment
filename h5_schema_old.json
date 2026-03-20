@@ -1,0 +1,2101 @@
+{
+    "Artery": {
+        "CrossSections": {
+            "Diameter": {
+                "Mean": {
+                    "value": "dataset"
+                },
+                "Median": {
+                    "value": "dataset"
+                },
+                "Spread": {
+                    "value": "dataset"
+                }
+            },
+            "TotalSectionCount": {
+                "value": "dataset"
+            },
+            "ValidSectionCount": {
+                "value": "dataset"
+            },
+            "VelocityPerSegment": {
+                "value": "dataset"
+            },
+            "VelocityProfileSeg": {
+                "value": "dataset"
+            },
+            "VelocityProfilesSegInterpOneBeat": {
+                "value": "dataset"
+            },
+            "Womersley": {
+                "DCMetrics": {
+                    "C0": {
+                        "value": "dataset"
+                    },
+                    "G0": {
+                        "value": "dataset"
+                    },
+                    "K0": {
+                        "value": "dataset"
+                    },
+                    "Q0": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "mu0": {
+                        "value": "dataset"
+                    },
+                    "tau0": {
+                        "value": "dataset"
+                    }
+                },
+                "Derived": {
+                    "MovingWallFixedNu": {
+                        "HF_flow_index": {
+                            "value": "dataset"
+                        },
+                        "HF_shear_index": {
+                            "value": "dataset"
+                        },
+                        "LossFactor1": {
+                            "value": "dataset"
+                        },
+                        "PI_Q": {
+                            "value": "dataset"
+                        },
+                        "PI_V": {
+                            "value": "dataset"
+                        },
+                        "PI_tau": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreFraction1": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreOverDiss1": {
+                            "value": "dataset"
+                        },
+                        "Q0": {
+                            "value": "dataset"
+                        },
+                        "ReactanceFactor1": {
+                            "value": "dataset"
+                        },
+                        "phi_GQ1": {
+                            "value": "dataset"
+                        },
+                        "phi_tauQ1": {
+                            "value": "dataset"
+                        },
+                        "tau0_mag": {
+                            "value": "dataset"
+                        }
+                    },
+                    "RigidWallFixedNu": {
+                        "HF_flow_index": {
+                            "value": "dataset"
+                        },
+                        "HF_shear_index": {
+                            "value": "dataset"
+                        },
+                        "LossFactor1": {
+                            "value": "dataset"
+                        },
+                        "PI_Q": {
+                            "value": "dataset"
+                        },
+                        "PI_V": {
+                            "value": "dataset"
+                        },
+                        "PI_tau": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreFraction1": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreOverDiss1": {
+                            "value": "dataset"
+                        },
+                        "Q0": {
+                            "value": "dataset"
+                        },
+                        "ReactanceFactor1": {
+                            "value": "dataset"
+                        },
+                        "phi_GQ1": {
+                            "value": "dataset"
+                        },
+                        "phi_tauQ1": {
+                            "value": "dataset"
+                        },
+                        "tau0_mag": {
+                            "value": "dataset"
+                        }
+                    },
+                    "RigidWallFreeNu": {
+                        "HF_flow_index": {
+                            "value": "dataset"
+                        },
+                        "HF_shear_index": {
+                            "value": "dataset"
+                        },
+                        "LossFactor1": {
+                            "value": "dataset"
+                        },
+                        "PI_Q": {
+                            "value": "dataset"
+                        },
+                        "PI_V": {
+                            "value": "dataset"
+                        },
+                        "PI_tau": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreFraction1": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreOverDiss1": {
+                            "value": "dataset"
+                        },
+                        "Q0": {
+                            "value": "dataset"
+                        },
+                        "ReactanceFactor1": {
+                            "value": "dataset"
+                        },
+                        "phi_GQ1": {
+                            "value": "dataset"
+                        },
+                        "phi_tauQ1": {
+                            "value": "dataset"
+                        },
+                        "tau0_mag": {
+                            "value": "dataset"
+                        }
+                    }
+                },
+                "MovingWallFixedNu": {
+                    "Cn_i": {
+                        "value": "dataset"
+                    },
+                    "Cn_r": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiQ2": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiTau2": {
+                        "value": "dataset"
+                    },
+                    "Dn_i": {
+                        "value": "dataset"
+                    },
+                    "Dn_r": {
+                        "value": "dataset"
+                    },
+                    "Kappa_n": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "RhoQ21": {
+                        "value": "dataset"
+                    },
+                    "RhoQ31": {
+                        "value": "dataset"
+                    },
+                    "RhoTau21": {
+                        "value": "dataset"
+                    },
+                    "RhoTau31": {
+                        "value": "dataset"
+                    },
+                    "Rn_i": {
+                        "value": "dataset"
+                    },
+                    "Rn_r": {
+                        "value": "dataset"
+                    },
+                    "alpha_1": {
+                        "value": "dataset"
+                    },
+                    "alpha_n": {
+                        "value": "dataset"
+                    },
+                    "center": {
+                        "value": "dataset"
+                    },
+                    "fit_exitflag": {
+                        "value": "dataset"
+                    },
+                    "harmonic": {
+                        "value": "dataset"
+                    },
+                    "harmonic_SNR_dB": {
+                        "value": "dataset"
+                    },
+                    "metrics": {
+                        "AnA0_i": {
+                            "value": "dataset"
+                        },
+                        "AnA0_r": {
+                            "value": "dataset"
+                        },
+                        "C_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Gn_i": {
+                            "value": "dataset"
+                        },
+                        "Gn_r": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "Kn_i": {
+                            "value": "dataset"
+                        },
+                        "Kn_r": {
+                            "value": "dataset"
+                        },
+                        "Mean_D1_amp": {
+                            "value": "dataset"
+                        },
+                        "P_seg_diss_n": {
+                            "value": "dataset"
+                        },
+                        "P_seg_store_n": {
+                            "value": "dataset"
+                        },
+                        "Qn_i": {
+                            "value": "dataset"
+                        },
+                        "Qn_r": {
+                            "value": "dataset"
+                        },
+                        "R_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Ratio_D1_V1": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_i": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_r": {
+                            "value": "dataset"
+                        },
+                        "mu_app": {
+                            "value": "dataset"
+                        },
+                        "nu_app": {
+                            "value": "dataset"
+                        },
+                        "tau_n_i": {
+                            "value": "dataset"
+                        },
+                        "tau_n_r": {
+                            "value": "dataset"
+                        }
+                    },
+                    "omega_0": {
+                        "value": "dataset"
+                    },
+                    "omega_n": {
+                        "value": "dataset"
+                    },
+                    "residual_mag_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS_msk": {
+                        "value": "dataset"
+                    },
+                    "width": {
+                        "value": "dataset"
+                    }
+                },
+                "QC": {
+                    "qc_MovingWallFixedNu": {
+                        "harmonic_valid": {
+                            "value": "dataset"
+                        },
+                        "reason": {
+                            "kappa": {
+                                "value": "dataset"
+                            },
+                            "q1_ok": {
+                                "value": "dataset"
+                            },
+                            "snr": {
+                                "value": "dataset"
+                            },
+                            "success": {
+                                "value": "dataset"
+                            },
+                            "wall": {
+                                "value": "dataset"
+                            }
+                        },
+                        "use_ratios": {
+                            "value": "dataset"
+                        }
+                    },
+                    "qc_RigidWallFixedNu": {
+                        "harmonic_valid": {
+                            "value": "dataset"
+                        },
+                        "reason": {
+                            "kappa": {
+                                "value": "dataset"
+                            },
+                            "q1_ok": {
+                                "value": "dataset"
+                            },
+                            "snr": {
+                                "value": "dataset"
+                            },
+                            "success": {
+                                "value": "dataset"
+                            },
+                            "wall": {
+                                "value": "dataset"
+                            }
+                        },
+                        "use_ratios": {
+                            "value": "dataset"
+                        }
+                    },
+                    "qc_RigidWallFreeNu": {
+                        "harmonic_valid": {
+                            "value": "dataset"
+                        },
+                        "reason": {
+                            "kappa": {
+                                "value": "dataset"
+                            },
+                            "q1_ok": {
+                                "value": "dataset"
+                            },
+                            "snr": {
+                                "value": "dataset"
+                            },
+                            "success": {
+                                "value": "dataset"
+                            },
+                            "wall": {
+                                "value": "dataset"
+                            }
+                        },
+                        "use_ratios": {
+                            "value": "dataset"
+                        }
+                    }
+                },
+                "RigidWallFixedNu": {
+                    "Cn_i": {
+                        "value": "dataset"
+                    },
+                    "Cn_r": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiQ2": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiTau2": {
+                        "value": "dataset"
+                    },
+                    "Dn_i": {
+                        "value": "dataset"
+                    },
+                    "Dn_r": {
+                        "value": "dataset"
+                    },
+                    "Kappa_n": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "RhoQ21": {
+                        "value": "dataset"
+                    },
+                    "RhoQ31": {
+                        "value": "dataset"
+                    },
+                    "RhoTau21": {
+                        "value": "dataset"
+                    },
+                    "RhoTau31": {
+                        "value": "dataset"
+                    },
+                    "Rn_i": {
+                        "value": "dataset"
+                    },
+                    "Rn_r": {
+                        "value": "dataset"
+                    },
+                    "alpha_1": {
+                        "value": "dataset"
+                    },
+                    "alpha_n": {
+                        "value": "dataset"
+                    },
+                    "center": {
+                        "value": "dataset"
+                    },
+                    "fit_exitflag": {
+                        "value": "dataset"
+                    },
+                    "harmonic": {
+                        "value": "dataset"
+                    },
+                    "harmonic_SNR_dB": {
+                        "value": "dataset"
+                    },
+                    "metrics": {
+                        "AnA0_i": {
+                            "value": "dataset"
+                        },
+                        "AnA0_r": {
+                            "value": "dataset"
+                        },
+                        "C_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Gn_i": {
+                            "value": "dataset"
+                        },
+                        "Gn_r": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "Kn_i": {
+                            "value": "dataset"
+                        },
+                        "Kn_r": {
+                            "value": "dataset"
+                        },
+                        "Mean_D1_amp": {
+                            "value": "dataset"
+                        },
+                        "P_seg_diss_n": {
+                            "value": "dataset"
+                        },
+                        "P_seg_store_n": {
+                            "value": "dataset"
+                        },
+                        "Qn_i": {
+                            "value": "dataset"
+                        },
+                        "Qn_r": {
+                            "value": "dataset"
+                        },
+                        "R_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Ratio_D1_V1": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_i": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_r": {
+                            "value": "dataset"
+                        },
+                        "mu_app": {
+                            "value": "dataset"
+                        },
+                        "nu_app": {
+                            "value": "dataset"
+                        },
+                        "tau_n_i": {
+                            "value": "dataset"
+                        },
+                        "tau_n_r": {
+                            "value": "dataset"
+                        }
+                    },
+                    "omega_0": {
+                        "value": "dataset"
+                    },
+                    "omega_n": {
+                        "value": "dataset"
+                    },
+                    "residual_mag_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS_msk": {
+                        "value": "dataset"
+                    },
+                    "width": {
+                        "value": "dataset"
+                    }
+                },
+                "RigidWallFreeNu": {
+                    "Cn_i": {
+                        "value": "dataset"
+                    },
+                    "Cn_r": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiQ2": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiTau2": {
+                        "value": "dataset"
+                    },
+                    "Dn_i": {
+                        "value": "dataset"
+                    },
+                    "Dn_r": {
+                        "value": "dataset"
+                    },
+                    "Kappa_n": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "RhoQ21": {
+                        "value": "dataset"
+                    },
+                    "RhoQ31": {
+                        "value": "dataset"
+                    },
+                    "RhoTau21": {
+                        "value": "dataset"
+                    },
+                    "RhoTau31": {
+                        "value": "dataset"
+                    },
+                    "Rn_i": {
+                        "value": "dataset"
+                    },
+                    "Rn_r": {
+                        "value": "dataset"
+                    },
+                    "alpha_1": {
+                        "value": "dataset"
+                    },
+                    "alpha_n": {
+                        "value": "dataset"
+                    },
+                    "center": {
+                        "value": "dataset"
+                    },
+                    "fit_exitflag": {
+                        "value": "dataset"
+                    },
+                    "harmonic": {
+                        "value": "dataset"
+                    },
+                    "harmonic_SNR_dB": {
+                        "value": "dataset"
+                    },
+                    "metrics": {
+                        "AnA0_i": {
+                            "value": "dataset"
+                        },
+                        "AnA0_r": {
+                            "value": "dataset"
+                        },
+                        "C_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Gn_i": {
+                            "value": "dataset"
+                        },
+                        "Gn_r": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "Kn_i": {
+                            "value": "dataset"
+                        },
+                        "Kn_r": {
+                            "value": "dataset"
+                        },
+                        "Mean_D1_amp": {
+                            "value": "dataset"
+                        },
+                        "P_seg_diss_n": {
+                            "value": "dataset"
+                        },
+                        "P_seg_store_n": {
+                            "value": "dataset"
+                        },
+                        "Qn_i": {
+                            "value": "dataset"
+                        },
+                        "Qn_r": {
+                            "value": "dataset"
+                        },
+                        "R_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Ratio_D1_V1": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_i": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_r": {
+                            "value": "dataset"
+                        },
+                        "mu_app": {
+                            "value": "dataset"
+                        },
+                        "nu_app": {
+                            "value": "dataset"
+                        },
+                        "tau_n_i": {
+                            "value": "dataset"
+                        },
+                        "tau_n_r": {
+                            "value": "dataset"
+                        }
+                    },
+                    "omega_0": {
+                        "value": "dataset"
+                    },
+                    "omega_n": {
+                        "value": "dataset"
+                    },
+                    "residual_mag_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS_msk": {
+                        "value": "dataset"
+                    },
+                    "width": {
+                        "value": "dataset"
+                    }
+                }
+            }
+        },
+        "FlowRate": {
+            "CycleVolume": {
+                "DiastolicFraction": {
+                    "value": "dataset"
+                },
+                "SystolicFraction": {
+                    "value": "dataset"
+                },
+                "Total": {
+                    "value": "dataset"
+                }
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "VolumeRate": {
+                "Signal": {
+                    "ste": "dataset",
+                    "value": "dataset"
+                }
+            },
+            "VolumeRateDiastoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateDiastoleMeantwothird": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMeanthird": {
+                "value": "dataset"
+            }
+        },
+        "Segmentation": {
+            "Mask": {
+                "value": "dataset"
+            },
+            "NbPxl": {
+                "value": "dataset"
+            },
+            "QualityScore": {
+                "value": "dataset"
+            }
+        },
+        "Velocity": {
+            "HistogramBybranches": {
+                "value": "dataset"
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSection": {
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSection": {
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanTrimmed": {
+                "value": "dataset"
+            },
+            "MedianSection": {
+                "value": "dataset"
+            },
+            "MedianTrimmed": {
+                "value": "dataset"
+            },
+            "MinSection": {
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ModeSection": {
+                "value": "dataset"
+            },
+            "ModeTrimmed": {
+                "value": "dataset"
+            },
+            "Percentile25": {
+                "value": "dataset"
+            },
+            "Percentile75": {
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "SystolicAccelerationPeakIndexes": {
+                "value": "dataset"
+            },
+            "VelocityProfiles": {
+                "value": "dataset"
+            },
+            "VelocitySignal": {
+                "value": "dataset"
+            },
+            "WaveformAnalysis": {
+                "syntheticSpectralAnalysis": {
+                    "ArterialFourierAmplitude": {
+                        "value": "dataset"
+                    },
+                    "ArterialFourierPhase": {
+                        "value": "dataset"
+                    },
+                    "ArterialPeakFrequencies": {
+                        "value": "dataset"
+                    }
+                }
+            }
+        },
+        "VelocityPerBeat": {
+            "Segments": {
+                "VelocityModeSignalPerBeatPerSegment": {
+                    "a": {
+                        "value": "dataset"
+                    },
+                    "mu": {
+                        "value": "dataset"
+                    },
+                    "s": {
+                        "value": "dataset"
+                    },
+                    "u": {
+                        "value": "dataset"
+                    },
+                    "validMask": {
+                        "value": "dataset"
+                    },
+                    "w": {
+                        "value": "dataset"
+                    },
+                    "wc": {
+                        "value": "dataset"
+                    }
+                },
+                "VelocitySignalPerBeatPerSegment": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentBandLimited": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_abs": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_arg": {
+                    "value": "dataset"
+                }
+            },
+            "VTIPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_abs": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_arg": {
+                "value": "dataset"
+            },
+            "VmaxPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VminPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "beatPeriodIdx": {
+                "value": "dataset"
+            },
+            "beatPeriodSeconds": {
+                "value": "dataset"
+            }
+        },
+        "WaveformAnalysis": {
+            "ArteryDiastoleMinIndices": {
+                "value": "dataset"
+            },
+            "ArterySystoleMaxIndices": {
+                "value": "dataset"
+            },
+            "ArteryTimeToMaxIncrease": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ArteryTimeToMinDiastole": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ArteryTimeToPeakSystole": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "DicroticNotch": {
+                "Visibility": {
+                    "value": "dataset"
+                },
+                "diastoleDuration": {
+                    "value": "dataset"
+                },
+                "dicroticNotchTime": {
+                    "value": "dataset"
+                }
+            },
+            "HeartBeat": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "HeartBeatFFT": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "SystoleIndices": {
+                "value": "dataset"
+            },
+            "TimePeakToDescent": {
+                "value": "dataset"
+            },
+            "TimeToDescent": {
+                "value": "dataset"
+            },
+            "TimeToPeakSystoleFromMinimumDiastole": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "diastolicRunoff": {
+                "value": "dataset"
+            },
+            "diastolicUpstroke": {
+                "value": "dataset"
+            },
+            "systolicDownstroke": {
+                "value": "dataset"
+            },
+            "systolicUpstroke": {
+                "value": "dataset"
+            }
+        }
+    },
+    "ArteryVein": {
+        "PhaseDelay": {
+            "value": "dataset"
+        },
+        "Segmentation": {
+            "NbPxl": {
+                "value": "dataset"
+            }
+        },
+        "TransFunction": {
+            "Mod": {
+                "value": "dataset"
+            },
+            "Phase": {
+                "value": "dataset"
+            }
+        },
+        "TransferFunction": {
+            "ModLog10": {
+                "value": "dataset"
+            },
+            "PhaseDegrees": {
+                "value": "dataset"
+            }
+        },
+        "Windkessel": {
+            "Ceff": {
+                "value": "dataset"
+            },
+            "DecayRC": {
+                "value": "dataset"
+            },
+            "PureDelay": {
+                "value": "dataset"
+            },
+            "Reff": {
+                "value": "dataset"
+            }
+        }
+    },
+    "Maps": {
+        "M0_ff_img": {
+            "value": "dataset"
+        },
+        "NetworkInput": {
+            "value": "dataset"
+        },
+        "f_AVG_mean": {
+            "value": "dataset"
+        }
+    },
+    "Meta": {
+        "EyePredictedSide": {
+            "value": "dataset"
+        },
+        "FrameRate": {
+            "value": "dataset"
+        },
+        "Frequency": {
+            "value": "dataset"
+        },
+        "InterFramePeriod": {
+            "value": "dataset"
+        },
+        "NumFrames": {
+            "value": "dataset"
+        },
+        "Time": {
+            "value": "dataset"
+        },
+        "UnixTimestampFirst": {
+            "value": "dataset"
+        },
+        "UnixTimestampLast": {
+            "value": "dataset"
+        }
+    },
+    "OpticDisc": {
+        "Ratio": {
+            "value": "dataset"
+        },
+        "XYCenter": {
+            "value": "dataset"
+        }
+    },
+    "Vein": {
+        "CrossSections": {
+            "Diameter": {
+                "Mean": {
+                    "value": "dataset"
+                },
+                "Median": {
+                    "value": "dataset"
+                },
+                "Spread": {
+                    "value": "dataset"
+                }
+            },
+            "TotalSectionCount": {
+                "value": "dataset"
+            },
+            "ValidSectionCount": {
+                "value": "dataset"
+            },
+            "VelocityPerSegment": {
+                "value": "dataset"
+            },
+            "VelocityProfileSeg": {
+                "value": "dataset"
+            },
+            "VelocityProfilesSegInterpOneBeat": {
+                "value": "dataset"
+            },
+            "Womersley": {
+                "DCMetrics": {
+                    "C0": {
+                        "value": "dataset"
+                    },
+                    "G0": {
+                        "value": "dataset"
+                    },
+                    "K0": {
+                        "value": "dataset"
+                    },
+                    "Q0": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "mu0": {
+                        "value": "dataset"
+                    },
+                    "tau0": {
+                        "value": "dataset"
+                    }
+                },
+                "Derived": {
+                    "MovingWallFixedNu": {
+                        "HF_flow_index": {
+                            "value": "dataset"
+                        },
+                        "HF_shear_index": {
+                            "value": "dataset"
+                        },
+                        "LossFactor1": {
+                            "value": "dataset"
+                        },
+                        "PI_Q": {
+                            "value": "dataset"
+                        },
+                        "PI_V": {
+                            "value": "dataset"
+                        },
+                        "PI_tau": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreFraction1": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreOverDiss1": {
+                            "value": "dataset"
+                        },
+                        "Q0": {
+                            "value": "dataset"
+                        },
+                        "ReactanceFactor1": {
+                            "value": "dataset"
+                        },
+                        "phi_GQ1": {
+                            "value": "dataset"
+                        },
+                        "phi_tauQ1": {
+                            "value": "dataset"
+                        },
+                        "tau0_mag": {
+                            "value": "dataset"
+                        }
+                    },
+                    "RigidWallFixedNu": {
+                        "HF_flow_index": {
+                            "value": "dataset"
+                        },
+                        "HF_shear_index": {
+                            "value": "dataset"
+                        },
+                        "LossFactor1": {
+                            "value": "dataset"
+                        },
+                        "PI_Q": {
+                            "value": "dataset"
+                        },
+                        "PI_V": {
+                            "value": "dataset"
+                        },
+                        "PI_tau": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreFraction1": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreOverDiss1": {
+                            "value": "dataset"
+                        },
+                        "Q0": {
+                            "value": "dataset"
+                        },
+                        "ReactanceFactor1": {
+                            "value": "dataset"
+                        },
+                        "phi_GQ1": {
+                            "value": "dataset"
+                        },
+                        "phi_tauQ1": {
+                            "value": "dataset"
+                        },
+                        "tau0_mag": {
+                            "value": "dataset"
+                        }
+                    },
+                    "RigidWallFreeNu": {
+                        "HF_flow_index": {
+                            "value": "dataset"
+                        },
+                        "HF_shear_index": {
+                            "value": "dataset"
+                        },
+                        "LossFactor1": {
+                            "value": "dataset"
+                        },
+                        "PI_Q": {
+                            "value": "dataset"
+                        },
+                        "PI_V": {
+                            "value": "dataset"
+                        },
+                        "PI_tau": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreFraction1": {
+                            "value": "dataset"
+                        },
+                        "PowerStoreOverDiss1": {
+                            "value": "dataset"
+                        },
+                        "Q0": {
+                            "value": "dataset"
+                        },
+                        "ReactanceFactor1": {
+                            "value": "dataset"
+                        },
+                        "phi_GQ1": {
+                            "value": "dataset"
+                        },
+                        "phi_tauQ1": {
+                            "value": "dataset"
+                        },
+                        "tau0_mag": {
+                            "value": "dataset"
+                        }
+                    }
+                },
+                "MovingWallFixedNu": {
+                    "Cn_i": {
+                        "value": "dataset"
+                    },
+                    "Cn_r": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiQ2": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiTau2": {
+                        "value": "dataset"
+                    },
+                    "Dn_i": {
+                        "value": "dataset"
+                    },
+                    "Dn_r": {
+                        "value": "dataset"
+                    },
+                    "Kappa_n": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "RhoQ21": {
+                        "value": "dataset"
+                    },
+                    "RhoQ31": {
+                        "value": "dataset"
+                    },
+                    "RhoTau21": {
+                        "value": "dataset"
+                    },
+                    "RhoTau31": {
+                        "value": "dataset"
+                    },
+                    "Rn_i": {
+                        "value": "dataset"
+                    },
+                    "Rn_r": {
+                        "value": "dataset"
+                    },
+                    "alpha_1": {
+                        "value": "dataset"
+                    },
+                    "alpha_n": {
+                        "value": "dataset"
+                    },
+                    "center": {
+                        "value": "dataset"
+                    },
+                    "fit_exitflag": {
+                        "value": "dataset"
+                    },
+                    "harmonic": {
+                        "value": "dataset"
+                    },
+                    "harmonic_SNR_dB": {
+                        "value": "dataset"
+                    },
+                    "metrics": {
+                        "AnA0_i": {
+                            "value": "dataset"
+                        },
+                        "AnA0_r": {
+                            "value": "dataset"
+                        },
+                        "C_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Gn_i": {
+                            "value": "dataset"
+                        },
+                        "Gn_r": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "Kn_i": {
+                            "value": "dataset"
+                        },
+                        "Kn_r": {
+                            "value": "dataset"
+                        },
+                        "Mean_D1_amp": {
+                            "value": "dataset"
+                        },
+                        "P_seg_diss_n": {
+                            "value": "dataset"
+                        },
+                        "P_seg_store_n": {
+                            "value": "dataset"
+                        },
+                        "Qn_i": {
+                            "value": "dataset"
+                        },
+                        "Qn_r": {
+                            "value": "dataset"
+                        },
+                        "R_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Ratio_D1_V1": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_i": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_r": {
+                            "value": "dataset"
+                        },
+                        "mu_app": {
+                            "value": "dataset"
+                        },
+                        "nu_app": {
+                            "value": "dataset"
+                        },
+                        "tau_n_i": {
+                            "value": "dataset"
+                        },
+                        "tau_n_r": {
+                            "value": "dataset"
+                        }
+                    },
+                    "omega_0": {
+                        "value": "dataset"
+                    },
+                    "omega_n": {
+                        "value": "dataset"
+                    },
+                    "residual_mag_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS_msk": {
+                        "value": "dataset"
+                    },
+                    "width": {
+                        "value": "dataset"
+                    }
+                },
+                "QC": {
+                    "qc_MovingWallFixedNu": {
+                        "harmonic_valid": {
+                            "value": "dataset"
+                        },
+                        "reason": {
+                            "kappa": {
+                                "value": "dataset"
+                            },
+                            "q1_ok": {
+                                "value": "dataset"
+                            },
+                            "snr": {
+                                "value": "dataset"
+                            },
+                            "success": {
+                                "value": "dataset"
+                            },
+                            "wall": {
+                                "value": "dataset"
+                            }
+                        },
+                        "use_ratios": {
+                            "value": "dataset"
+                        }
+                    },
+                    "qc_RigidWallFixedNu": {
+                        "harmonic_valid": {
+                            "value": "dataset"
+                        },
+                        "reason": {
+                            "kappa": {
+                                "value": "dataset"
+                            },
+                            "q1_ok": {
+                                "value": "dataset"
+                            },
+                            "snr": {
+                                "value": "dataset"
+                            },
+                            "success": {
+                                "value": "dataset"
+                            },
+                            "wall": {
+                                "value": "dataset"
+                            }
+                        },
+                        "use_ratios": {
+                            "value": "dataset"
+                        }
+                    },
+                    "qc_RigidWallFreeNu": {
+                        "harmonic_valid": {
+                            "value": "dataset"
+                        },
+                        "reason": {
+                            "kappa": {
+                                "value": "dataset"
+                            },
+                            "q1_ok": {
+                                "value": "dataset"
+                            },
+                            "snr": {
+                                "value": "dataset"
+                            },
+                            "success": {
+                                "value": "dataset"
+                            },
+                            "wall": {
+                                "value": "dataset"
+                            }
+                        },
+                        "use_ratios": {
+                            "value": "dataset"
+                        }
+                    }
+                },
+                "RigidWallFixedNu": {
+                    "Cn_i": {
+                        "value": "dataset"
+                    },
+                    "Cn_r": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiQ2": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiTau2": {
+                        "value": "dataset"
+                    },
+                    "Dn_i": {
+                        "value": "dataset"
+                    },
+                    "Dn_r": {
+                        "value": "dataset"
+                    },
+                    "Kappa_n": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "RhoQ21": {
+                        "value": "dataset"
+                    },
+                    "RhoQ31": {
+                        "value": "dataset"
+                    },
+                    "RhoTau21": {
+                        "value": "dataset"
+                    },
+                    "RhoTau31": {
+                        "value": "dataset"
+                    },
+                    "Rn_i": {
+                        "value": "dataset"
+                    },
+                    "Rn_r": {
+                        "value": "dataset"
+                    },
+                    "alpha_1": {
+                        "value": "dataset"
+                    },
+                    "alpha_n": {
+                        "value": "dataset"
+                    },
+                    "center": {
+                        "value": "dataset"
+                    },
+                    "fit_exitflag": {
+                        "value": "dataset"
+                    },
+                    "harmonic": {
+                        "value": "dataset"
+                    },
+                    "harmonic_SNR_dB": {
+                        "value": "dataset"
+                    },
+                    "metrics": {
+                        "AnA0_i": {
+                            "value": "dataset"
+                        },
+                        "AnA0_r": {
+                            "value": "dataset"
+                        },
+                        "C_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Gn_i": {
+                            "value": "dataset"
+                        },
+                        "Gn_r": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "Kn_i": {
+                            "value": "dataset"
+                        },
+                        "Kn_r": {
+                            "value": "dataset"
+                        },
+                        "Mean_D1_amp": {
+                            "value": "dataset"
+                        },
+                        "P_seg_diss_n": {
+                            "value": "dataset"
+                        },
+                        "P_seg_store_n": {
+                            "value": "dataset"
+                        },
+                        "Qn_i": {
+                            "value": "dataset"
+                        },
+                        "Qn_r": {
+                            "value": "dataset"
+                        },
+                        "R_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Ratio_D1_V1": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_i": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_r": {
+                            "value": "dataset"
+                        },
+                        "mu_app": {
+                            "value": "dataset"
+                        },
+                        "nu_app": {
+                            "value": "dataset"
+                        },
+                        "tau_n_i": {
+                            "value": "dataset"
+                        },
+                        "tau_n_r": {
+                            "value": "dataset"
+                        }
+                    },
+                    "omega_0": {
+                        "value": "dataset"
+                    },
+                    "omega_n": {
+                        "value": "dataset"
+                    },
+                    "residual_mag_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS_msk": {
+                        "value": "dataset"
+                    },
+                    "width": {
+                        "value": "dataset"
+                    }
+                },
+                "RigidWallFreeNu": {
+                    "Cn_i": {
+                        "value": "dataset"
+                    },
+                    "Cn_r": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiQ2": {
+                        "value": "dataset"
+                    },
+                    "DeltaPhiTau2": {
+                        "value": "dataset"
+                    },
+                    "Dn_i": {
+                        "value": "dataset"
+                    },
+                    "Dn_r": {
+                        "value": "dataset"
+                    },
+                    "Kappa_n": {
+                        "value": "dataset"
+                    },
+                    "R0": {
+                        "value": "dataset"
+                    },
+                    "RhoQ21": {
+                        "value": "dataset"
+                    },
+                    "RhoQ31": {
+                        "value": "dataset"
+                    },
+                    "RhoTau21": {
+                        "value": "dataset"
+                    },
+                    "RhoTau31": {
+                        "value": "dataset"
+                    },
+                    "Rn_i": {
+                        "value": "dataset"
+                    },
+                    "Rn_r": {
+                        "value": "dataset"
+                    },
+                    "alpha_1": {
+                        "value": "dataset"
+                    },
+                    "alpha_n": {
+                        "value": "dataset"
+                    },
+                    "center": {
+                        "value": "dataset"
+                    },
+                    "fit_exitflag": {
+                        "value": "dataset"
+                    },
+                    "harmonic": {
+                        "value": "dataset"
+                    },
+                    "harmonic_SNR_dB": {
+                        "value": "dataset"
+                    },
+                    "metrics": {
+                        "AnA0_i": {
+                            "value": "dataset"
+                        },
+                        "AnA0_r": {
+                            "value": "dataset"
+                        },
+                        "C_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Gn_i": {
+                            "value": "dataset"
+                        },
+                        "Gn_r": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_GQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_RQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_Geonorm_abs": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_i": {
+                            "value": "dataset"
+                        },
+                        "H_tauQ_n_r": {
+                            "value": "dataset"
+                        },
+                        "Kn_i": {
+                            "value": "dataset"
+                        },
+                        "Kn_r": {
+                            "value": "dataset"
+                        },
+                        "Mean_D1_amp": {
+                            "value": "dataset"
+                        },
+                        "P_seg_diss_n": {
+                            "value": "dataset"
+                        },
+                        "P_seg_store_n": {
+                            "value": "dataset"
+                        },
+                        "Qn_i": {
+                            "value": "dataset"
+                        },
+                        "Qn_r": {
+                            "value": "dataset"
+                        },
+                        "R_seg_n": {
+                            "value": "dataset"
+                        },
+                        "Ratio_D1_V1": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_i": {
+                            "value": "dataset"
+                        },
+                        "RnR0_complex_r": {
+                            "value": "dataset"
+                        },
+                        "mu_app": {
+                            "value": "dataset"
+                        },
+                        "nu_app": {
+                            "value": "dataset"
+                        },
+                        "tau_n_i": {
+                            "value": "dataset"
+                        },
+                        "tau_n_r": {
+                            "value": "dataset"
+                        }
+                    },
+                    "omega_0": {
+                        "value": "dataset"
+                    },
+                    "omega_n": {
+                        "value": "dataset"
+                    },
+                    "residual_mag_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS": {
+                        "value": "dataset"
+                    },
+                    "residual_phase_RMS_msk": {
+                        "value": "dataset"
+                    },
+                    "width": {
+                        "value": "dataset"
+                    }
+                }
+            }
+        },
+        "FlowRate": {
+            "CycleVolume": {
+                "DiastolicFraction": {
+                    "value": "dataset"
+                },
+                "SystolicFraction": {
+                    "value": "dataset"
+                },
+                "Total": {
+                    "value": "dataset"
+                }
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "VolumeRate": {
+                "Signal": {
+                    "ste": "dataset",
+                    "value": "dataset"
+                }
+            },
+            "VolumeRateDiastoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateDiastoleMeantwothird": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMeanthird": {
+                "value": "dataset"
+            }
+        },
+        "Segmentation": {
+            "Mask": {
+                "value": "dataset"
+            },
+            "NbPxl": {
+                "value": "dataset"
+            },
+            "QualityScore": {
+                "value": "dataset"
+            }
+        },
+        "Velocity": {
+            "HistogramBybranches": {
+                "value": "dataset"
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSection": {
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSection": {
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanTrimmed": {
+                "value": "dataset"
+            },
+            "MedianSection": {
+                "value": "dataset"
+            },
+            "MedianTrimmed": {
+                "value": "dataset"
+            },
+            "MinSection": {
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ModeSection": {
+                "value": "dataset"
+            },
+            "ModeTrimmed": {
+                "value": "dataset"
+            },
+            "Percentile25": {
+                "value": "dataset"
+            },
+            "Percentile75": {
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "VelocityProfiles": {
+                "value": "dataset"
+            },
+            "VelocitySignal": {
+                "value": "dataset"
+            },
+            "WaveformAnalysis": {
+                "syntheticSpectralAnalysis": {
+                    "VenousFourierAmplitude": {
+                        "value": "dataset"
+                    },
+                    "VenousFourierPhase": {
+                        "value": "dataset"
+                    },
+                    "VenousPeakFrequencies": {
+                        "value": "dataset"
+                    }
+                }
+            }
+        },
+        "VelocityPerBeat": {
+            "Segments": {
+                "VelocityModeSignalPerBeatPerSegment": {
+                    "a": {
+                        "value": "dataset"
+                    },
+                    "mu": {
+                        "value": "dataset"
+                    },
+                    "s": {
+                        "value": "dataset"
+                    },
+                    "u": {
+                        "value": "dataset"
+                    },
+                    "validMask": {
+                        "value": "dataset"
+                    },
+                    "w": {
+                        "value": "dataset"
+                    },
+                    "wc": {
+                        "value": "dataset"
+                    }
+                },
+                "VelocitySignalPerBeatPerSegment": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentBandLimited": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_abs": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_arg": {
+                    "value": "dataset"
+                }
+            },
+            "VTIPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_abs": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_arg": {
+                "value": "dataset"
+            },
+            "VmaxPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VminPerBeatBandLimited": {
+                "value": "dataset"
+            }
+        },
+        "WaveformAnalysis": {
+            "VeinTimeToPeakFromMin": {
+                "value": "dataset"
+            }
+        }
+    }
+}

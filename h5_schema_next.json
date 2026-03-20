@@ -1,0 +1,687 @@
+{
+    "Retina": {
+        "Artery":{
+            "Segmentation": {
+                "Mask": {
+                    "value": "dataset"
+                },
+                "NbPxl": {
+                    "value": "dataset"
+                },
+                "QualityScore": {
+                    "value": "dataset"
+                }
+            }
+            "binary": {
+                "vessel_mask": "retinal_vessel_mask",
+                "labeled_vessels": "labeled_vessels",
+                "vessel_segmentation_logits": "vessel_segmentation_logits",
+                "branch_signals": "branch_signals"
+            },
+            "av": {
+                "artery_mask": "retinal_artery_mask",
+                "vein_mask": "retinal_vein_mask"
+            }
+        },
+        "Choroid": {
+            "binary": {
+                "vessel_mask": "choroidal_vessel_mask"
+            },
+            "av": {
+                "artery_mask": "choroidal_artery_mask",
+                "vein_mask": "choroidal_vein_mask"
+            }
+        },
+        "OpticDisc": {
+            "center": "optic_disc_center",
+            "axes": "optic_disc_axes"
+        }
+    },
+    "analysis": {
+        "retinal_velocity_array": "retinal_vessel_velocity",
+        "retinal_artery_velocity_signal": "retinal_artery_velocity_signal",
+        "retinal_vein_velocity_signal" : "retinal_vein_velocity_signal",
+        "velocity_map_avg": "velocity_map_avg",
+        "fRMS_avg": "fRMS_avg",
+        "fRMS_bkg_avg": "fRMS_bkg_avg",
+        "velocitysignal_per_beat": "retinal_artery_velocity_signal_filtered_perbeat",
+        "velocitysignal_filtered": "retinal_artery_velocity_signal_filtered",
+        "beat_indices": "beat_indices",
+        "time_per_beat": "time_per_beat",
+        "outlier_frames_mask": "outlier_frames_mask"
+    }
+}
+
+{
+    "Artery": {
+        "CrossSections": {
+            "Diameter": {
+                "Mean": {
+                    "value": "dataset"
+                },
+                "Median": {
+                    "value": "dataset"
+                },
+                "Spread": {
+                    "value": "dataset"
+                }
+            },
+            "TotalSectionCount": {
+                "value": "dataset"
+            },
+            "ValidSectionCount": {
+                "value": "dataset"
+            },
+            "VelocityPerSegment": {
+                "value": "dataset"
+            },
+            "VelocityProfileSeg": {
+                "value": "dataset"
+            },
+            "VelocityProfilesSegInterpOneBeat": {
+                "value": "dataset"
+            }
+        },
+        "FlowRate": {
+            "CycleVolume": {
+                "DiastolicFraction": {
+                    "value": "dataset"
+                },
+                "SystolicFraction": {
+                    "value": "dataset"
+                },
+                "Total": {
+                    "value": "dataset"
+                }
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "VolumeRate": {
+                "Signal": {
+                    "ste": "dataset",
+                    "value": "dataset"
+                }
+            },
+            "VolumeRateDiastoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateDiastoleMeantwothird": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMeanthird": {
+                "value": "dataset"
+            }
+        },
+        "Segmentation": {
+            "Mask": {
+                "value": "dataset"
+            },
+            "NbPxl": {
+                "value": "dataset"
+            },
+            "QualityScore": {
+                "value": "dataset"
+            }
+        },
+        "Velocity": {
+            "HistogramBybranches": {
+                "value": "dataset"
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSection": {
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSection": {
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanTrimmed": {
+                "value": "dataset"
+            },
+            "MedianSection": {
+                "value": "dataset"
+            },
+            "MedianTrimmed": {
+                "value": "dataset"
+            },
+            "MinSection": {
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ModeSection": {
+                "value": "dataset"
+            },
+            "ModeTrimmed": {
+                "value": "dataset"
+            },
+            "Percentile25": {
+                "value": "dataset"
+            },
+            "Percentile75": {
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "SystolicAccelerationPeakIndexes": {
+                "value": "dataset"
+            },
+            "VelocityProfiles": {
+                "value": "dataset"
+            },
+            "VelocitySignal": {
+                "value": "dataset"
+            },
+            "WaveformAnalysis": {
+                "syntheticSpectralAnalysis": {
+                    "ArterialFourierAmplitude": {
+                        "value": "dataset"
+                    },
+                    "ArterialFourierPhase": {
+                        "value": "dataset"
+                    },
+                    "ArterialPeakFrequencies": {
+                        "value": "dataset"
+                    }
+                }
+            }
+        },
+        "VelocityPerBeat": {
+            "Segments": {
+                "VelocityModeSignalPerBeatPerSegment": {
+                    "a": {
+                        "value": "dataset"
+                    },
+                    "mu": {
+                        "value": "dataset"
+                    },
+                    "s": {
+                        "value": "dataset"
+                    },
+                    "u": {
+                        "value": "dataset"
+                    },
+                    "validMask": {
+                        "value": "dataset"
+                    },
+                    "w": {
+                        "value": "dataset"
+                    },
+                    "wc": {
+                        "value": "dataset"
+                    }
+                },
+                "VelocitySignalPerBeatPerSegment": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentBandLimited": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_abs": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_arg": {
+                    "value": "dataset"
+                }
+            },
+            "VTIPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_abs": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_arg": {
+                "value": "dataset"
+            },
+            "VmaxPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VminPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "beatPeriodIdx": {
+                "value": "dataset"
+            },
+            "beatPeriodSeconds": {
+                "value": "dataset"
+            }
+        },
+        "WaveformAnalysis": {
+            "ArteryDiastoleMinIndices": {
+                "value": "dataset"
+            },
+            "ArterySystoleMaxIndices": {
+                "value": "dataset"
+            },
+            "ArteryTimeToMaxIncrease": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ArteryTimeToMinDiastole": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ArteryTimeToPeakSystole": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "DicroticNotch": {
+                "Visibility": {
+                    "value": "dataset"
+                },
+                "diastoleDuration": {
+                    "value": "dataset"
+                },
+                "dicroticNotchTime": {
+                    "value": "dataset"
+                }
+            },
+            "HeartBeat": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "HeartBeatFFT": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "SystoleIndices": {
+                "value": "dataset"
+            },
+            "TimePeakToDescent": {
+                "value": "dataset"
+            },
+            "TimeToDescent": {
+                "value": "dataset"
+            },
+            "TimeToPeakSystoleFromMinimumDiastole": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "diastolicRunoff": {
+                "value": "dataset"
+            },
+            "diastolicUpstroke": {
+                "value": "dataset"
+            },
+            "systolicDownstroke": {
+                "value": "dataset"
+            },
+            "systolicUpstroke": {
+                "value": "dataset"
+            }
+        }
+    },
+    "ArteryVein": {
+        "PhaseDelay": {
+            "value": "dataset"
+        },
+        "Segmentation": {
+            "NbPxl": {
+                "value": "dataset"
+            }
+        },
+        "TransFunction": {
+            "Mod": {
+                "value": "dataset"
+            },
+            "Phase": {
+                "value": "dataset"
+            }
+        },
+        "TransferFunction": {
+            "ModLog10": {
+                "value": "dataset"
+            },
+            "PhaseDegrees": {
+                "value": "dataset"
+            }
+        },
+        "Windkessel": {
+            "Ceff": {
+                "value": "dataset"
+            },
+            "DecayRC": {
+                "value": "dataset"
+            },
+            "PureDelay": {
+                "value": "dataset"
+            },
+            "Reff": {
+                "value": "dataset"
+            }
+        }
+    },
+    "Maps": {
+        "M0_ff_img": {
+            "value": "dataset"
+        },
+        "NetworkInput": {
+            "value": "dataset"
+        },
+        "f_AVG_mean": {
+            "value": "dataset"
+        }
+    },
+    "Meta": {
+        "EyePredictedSide": {
+            "value": "dataset"
+        },
+        "FrameRate": {
+            "value": "dataset"
+        },
+        "Frequency": {
+            "value": "dataset"
+        },
+        "InterFramePeriod": {
+            "value": "dataset"
+        },
+        "NumFrames": {
+            "value": "dataset"
+        },
+        "Time": {
+            "value": "dataset"
+        },
+        "UnixTimestampFirst": {
+            "value": "dataset"
+        },
+        "UnixTimestampLast": {
+            "value": "dataset"
+        }
+    },
+    "OpticDisc": {
+        "Ratio": {
+            "value": "dataset"
+        },
+        "XYCenter": {
+            "value": "dataset"
+        }
+    },
+    "Vein": {
+        "CrossSections": {
+            "Diameter": {
+                "Mean": {
+                    "value": "dataset"
+                },
+                "Median": {
+                    "value": "dataset"
+                },
+                "Spread": {
+                    "value": "dataset"
+                }
+            },
+            "TotalSectionCount": {
+                "value": "dataset"
+            },
+            "ValidSectionCount": {
+                "value": "dataset"
+            },
+            "VelocityPerSegment": {
+                "value": "dataset"
+            },
+            "VelocityProfileSeg": {
+                "value": "dataset"
+            },
+            "VelocityProfilesSegInterpOneBeat": {
+                "value": "dataset"
+            },
+        },
+        "FlowRate": {
+            "CycleVolume": {
+                "DiastolicFraction": {
+                    "value": "dataset"
+                },
+                "SystolicFraction": {
+                    "value": "dataset"
+                },
+                "Total": {
+                    "value": "dataset"
+                }
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "VolumeRate": {
+                "Signal": {
+                    "ste": "dataset",
+                    "value": "dataset"
+                }
+            },
+            "VolumeRateDiastoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateDiastoleMeantwothird": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMean": {
+                "value": "dataset"
+            },
+            "VolumeRateSystoleMeanthird": {
+                "value": "dataset"
+            }
+        },
+        "Segmentation": {
+            "Mask": {
+                "value": "dataset"
+            },
+            "NbPxl": {
+                "value": "dataset"
+            },
+            "QualityScore": {
+                "value": "dataset"
+            }
+        },
+        "Velocity": {
+            "HistogramBybranches": {
+                "value": "dataset"
+            },
+            "MaxMinRatioSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MaxSection": {
+                "value": "dataset"
+            },
+            "MaxSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanSection": {
+                "value": "dataset"
+            },
+            "MeanSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "MeanTrimmed": {
+                "value": "dataset"
+            },
+            "MedianSection": {
+                "value": "dataset"
+            },
+            "MedianTrimmed": {
+                "value": "dataset"
+            },
+            "MinSection": {
+                "value": "dataset"
+            },
+            "MinSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ModeSection": {
+                "value": "dataset"
+            },
+            "ModeTrimmed": {
+                "value": "dataset"
+            },
+            "Percentile25": {
+                "value": "dataset"
+            },
+            "Percentile75": {
+                "value": "dataset"
+            },
+            "PulsatilityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "ResistivityIndexSignal": {
+                "ste": "dataset",
+                "value": "dataset"
+            },
+            "VelocityProfiles": {
+                "value": "dataset"
+            },
+            "VelocitySignal": {
+                "value": "dataset"
+            },
+            "WaveformAnalysis": {
+                "syntheticSpectralAnalysis": {
+                    "VenousFourierAmplitude": {
+                        "value": "dataset"
+                    },
+                    "VenousFourierPhase": {
+                        "value": "dataset"
+                    },
+                    "VenousPeakFrequencies": {
+                        "value": "dataset"
+                    }
+                }
+            }
+        },
+        "VelocityPerBeat": {
+            "Segments": {
+                "VelocityModeSignalPerBeatPerSegment": {
+                    "a": {
+                        "value": "dataset"
+                    },
+                    "mu": {
+                        "value": "dataset"
+                    },
+                    "s": {
+                        "value": "dataset"
+                    },
+                    "u": {
+                        "value": "dataset"
+                    },
+                    "validMask": {
+                        "value": "dataset"
+                    },
+                    "w": {
+                        "value": "dataset"
+                    },
+                    "wc": {
+                        "value": "dataset"
+                    }
+                },
+                "VelocitySignalPerBeatPerSegment": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentBandLimited": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_abs": {
+                    "value": "dataset"
+                },
+                "VelocitySignalPerBeatPerSegmentFFT_arg": {
+                    "value": "dataset"
+                }
+            },
+            "VTIPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeat": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_abs": {
+                "value": "dataset"
+            },
+            "VelocitySignalPerBeatFFT_arg": {
+                "value": "dataset"
+            },
+            "VmaxPerBeatBandLimited": {
+                "value": "dataset"
+            },
+            "VminPerBeatBandLimited": {
+                "value": "dataset"
+            }
+        },
+        "WaveformAnalysis": {
+            "VeinTimeToPeakFromMin": {
+                "value": "dataset"
+            }
+        }
+    }
+}
