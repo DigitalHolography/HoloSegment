@@ -6,9 +6,9 @@ from unittest import signals
 
 import numpy as np
 from scipy import fft
-from scipy.signal import butter, filtfilt, find_peaks
+from scipy.signal import butter, filtfilt, find_peaks, savgol_filter
 from scipy.stats import zscore
-from scipy.ndimage import uniform_filter1d
+from scipy.ndimage import uniform_filter1d, median_filter
 
 from skimage.measure import label
 from skimage import measure
@@ -207,8 +207,31 @@ def get_filtered_branch_signals(video, labeled_vessels, sampling_frequency):
         if moving_window > 1:
             signals[i - 1, :] = movmean(signals[i - 1, :], moving_window)
 
-        outliers = detect_outliers_moving_median(signals[i - 1, :], window=moving_window, threshold_factor=1.5)
-        signals[i - 1, :] = interpolate_outliers_signal(signals[i - 1, :], outliers)
+        signals[i - 1, :], _ = clean_cardiac_signal(signals[i - 1, :])
+
+        # mask1, smooth = detect_outliers_model_based(signals[i - 1, :])
+        # mask2 = detect_outliers_derivative(signals[i - 1, :])
+        # mask = mask1 | mask2
+
+        # mask_percentile = local_percentile_outliers(signals[i - 1, :], thresh=1.2)
+        # mask_derivative = detect_outliers_derivative(signals[i - 1, :])
+
+        # mask = mask_percentile | mask_derivative
+
+
+        # # optional: remove global drop
+        # mask |= detect_global_drop(signals[i - 1, :], drop_threshold=0.1)
+
+        # cleaned = interpolate_outliers_signal(signals[i - 1, :], mask)
+
+        # # optional final smoothing
+        # cleaned = savgol_filter(cleaned, 21, 3)
+
+        # # cleaned = interpolate_outliers_signal(signals[i - 1, :], outliers)
+
+        # # cleaned = savgol_filter(cleaned, 21, 3)
+
+        # signals[i - 1, :] = cleaned
 
     return signals
 
@@ -282,32 +305,154 @@ def interpolate_outlier_frames(video, outlier_frames_mask):
 
     return video_cleaned
 
-def interpolate_outliers_signal(signal, outlier_frames_mask):
-    signal_cleaned = signal.copy()
-    outlier_indices = np.where(outlier_frames_mask)[0]
+# def interpolate_outliers_signal(signal, outlier_frames_mask):
+#     signal_cleaned = signal.copy()
+#     outlier_indices = np.where(outlier_frames_mask)[0]
 
-    for idx in outlier_indices:
-        prev_candidates = np.where(~outlier_frames_mask[:idx])[0]
-        next_candidates = np.where(~outlier_frames_mask[idx+1:])[0] + idx + 1
+#     for idx in outlier_indices:
+#         prev_candidates = np.where(~outlier_frames_mask[:idx])[0]
+#         next_candidates = np.where(~outlier_frames_mask[idx+1:])[0] + idx + 1
 
-        prev_frame = prev_candidates[-1] if len(prev_candidates) > 0 else None
-        next_frame = next_candidates[0] if len(next_candidates) > 0 else None
+#         prev_frame = prev_candidates[-1] if len(prev_candidates) > 0 else None
+#         next_frame = next_candidates[0] if len(next_candidates) > 0 else None
 
-        if prev_frame is None:
-            prev_frame = next_frame
-        if next_frame is None:
-            next_frame = prev_frame
+#         if prev_frame is None:
+#             prev_frame = next_frame
+#         if next_frame is None:
+#             next_frame = prev_frame
 
-        if prev_frame == next_frame:
-            signal_cleaned[idx] = signal[prev_frame]
-        else:
-            alpha = (idx - prev_frame) / (next_frame - prev_frame)
-            signal_cleaned[idx] = (
-                (1 - alpha) * signal[prev_frame] +
-                alpha * signal[next_frame]
-            )
+#         if prev_frame == next_frame:
+#             signal_cleaned[idx] = signal[prev_frame]
+#         else:
+#             alpha = (idx - prev_frame) / (next_frame - prev_frame)
+#             signal_cleaned[idx] = (
+#                 (1 - alpha) * signal[prev_frame] +
+#                 alpha * signal[next_frame]
+#             )
 
-    return signal_cleaned
+#     return signal_cleaned
+
+def local_percentile_outliers(signal, window=31, lower=5, upper=95, thresh=1.5):
+    n = len(signal)
+    mask = np.zeros(n, dtype=bool)
+    
+    half = window // 2
+    
+    for i in range(n):
+        start = max(0, i - half)
+        end = min(n, i + half + 1)
+        
+        w = signal[start:end]
+        
+        p_low = np.percentile(w, lower)
+        p_high = np.percentile(w, upper)
+        
+        # robust range
+        r = p_high - p_low
+        
+        if r == 0:
+            continue
+        
+        if signal[i] < p_low * (1/thresh) or signal[i] > p_high * thresh:
+            mask[i] = True
+            
+    return mask
+
+import numpy as np
+from scipy.signal import savgol_filter
+from scipy.interpolate import CubicSpline
+
+def clean_cardiac_signal(sig, fs=250):
+    sig = sig.copy().astype(float)
+
+    # Step 1: Detect sudden large jumps (lead-off, disconnection)
+    diff = np.abs(np.diff(sig))
+    threshold = 3 * np.std(diff)
+    bad_idx = np.where(diff > threshold)[0] + 1  # indices after the jump
+
+    # Expand bad regions by a small window around each jump
+    mask = np.zeros(len(sig), dtype=bool)
+    for i in bad_idx:
+        mask[max(0, i-3):min(len(sig), i+10)] = True
+
+    # Step 2: Hampel identifier for isolated spikes
+    window = 11
+    for i in range(window//2, len(sig) - window//2):
+        if mask[i]:
+            continue
+        local = sig[i - window//2 : i + window//2 + 1]
+        med = np.median(local)
+        mad = np.median(np.abs(local - med))
+        if np.abs(sig[i] - med) > 3 * 1.4826 * mad:
+            mask[i] = True
+
+    # Step 3: Cubic spline interpolation over bad regions
+    good = ~mask
+    x_good = np.where(good)[0]
+    cs = CubicSpline(x_good, sig[good])
+    sig[mask] = cs(np.where(mask)[0])
+
+    # Step 4: Savitzky-Golay smoothing (preserves peaks)
+    sig = savgol_filter(sig, window_length=9, polyorder=3)
+
+    return sig, mask
+
+def detect_global_drop(signal, drop_threshold=0.1):
+    baseline = np.median(signal[:len(signal)//2])
+    return signal < (1 - drop_threshold) * baseline
+
+def interpolate_outliers_signal(signal, mask):
+    x = np.arange(len(signal))
+    valid = ~mask
+    
+    if np.sum(valid) < 2:
+        return signal.copy()
+    
+    return np.interp(x, x[valid], signal[valid])
+
+def detect_outliers_model_based(signal, window=31, poly=3, threshold=3):
+    smooth = savgol_filter(signal, window, poly)
+    
+    residual = signal - smooth
+    
+    # robust scale
+    mad = np.median(np.abs(residual))
+    sigma = 1.4826 * mad if mad > 0 else np.std(residual)
+    
+    mask = np.abs(residual) > threshold * sigma
+    
+    return mask, smooth
+
+def detect_outliers_derivative(signal, threshold=3):
+    deriv = np.diff(signal, prepend=signal[0])
+    
+    mad = np.median(np.abs(deriv))
+    sigma = 1.4826 * mad if mad > 0 else np.std(deriv)
+    
+    mask = np.abs(deriv) > threshold * sigma
+    return mask
+
+def hampel_filter(signal, window=11, n_sigmas=3):
+    # Local median
+    med = median_filter(signal, size=window, mode='nearest')
+    
+    # Local MAD
+    abs_dev = np.abs(signal - med)
+    mad = median_filter(abs_dev, size=window, mode='nearest')
+    
+    # Scale factor for Gaussian consistency
+    sigma = 1.2 * mad
+    
+    # Avoid division issues
+    sigma[sigma == 0] = np.median(sigma[sigma > 0]) if np.any(sigma > 0) else 1.0
+    
+    # Outlier mask
+    outliers = abs_dev > n_sigmas * sigma
+    
+    return outliers, med
+
+def post_smooth(signal, window=21, poly=3):
+    return savgol_filter(signal, window, poly)  
 
 # Detect outliers using a moving median and threshold
 def detect_outliers_moving_median(signal, window=5, threshold_factor=2.0):

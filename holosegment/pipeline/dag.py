@@ -34,11 +34,13 @@ class DAGEngine:
     def __init__(self, steps: Iterable[BaseStep], debug_mode=False):
         self.steps: Dict[str, BaseStep] = {s.name: s for s in steps}
 
-        self._validate_unique_names()
-        self.graph = self._build_dependency_graph()
-        self.execution_order = self._topological_sort()
-        self.invalidated = set()
-        self.steps_to_run = None
+        self._validate_unique_names() # Ensure all steps have unique names
+        self.graph = self._build_dependency_graph() # Directed acyclic graph of step dependencies
+        self.execution_order = self._topological_sort() # Cached topological order of steps for execution
+
+        self.invalidated = set() # Steps marked for execution due to changes or missing outputs
+        self.steps_to_run = None # Cache resolved execution order for given targets
+
         self.debug_mode = debug_mode
 
     # ------------------------------------------------------------------
@@ -162,6 +164,14 @@ class DAGEngine:
         if self.steps_to_run is not None and len(self.steps_to_run) > 0:
             self.invalidated.add(self.steps_to_run[-1])
 
+    def run_step(self, ctx, step: BaseStep):
+        start_time = time.time()
+        step.run(ctx)
+        elapsed = time.time() - start_time
+        print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
+        step.export(ctx)
+        ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
+
     def run(self, ctx, targets: List[str] = None):
         """
         Execute the DAG.
@@ -180,12 +190,7 @@ class DAGEngine:
 
             if step_name in self.invalidated:
                 print(f"[DAG] Running (invalidated): {step.name}")
-                start_time = time.time()
-                step.run(ctx)
-                elapsed = time.time() - start_time
-                print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
-                step.export(ctx)
-                ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
+                self.run_step(ctx, step)
 
                 # Invalidate downstream
                 downstream = self._collect_downstream(step_name)
@@ -198,12 +203,7 @@ class DAGEngine:
                 continue
 
             print(f"[DAG] Running step: {step.name}")
-            start_time = time.time()
-            step.run(ctx)
-            elapsed = time.time() - start_time
-            step.export(ctx)
-            print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
-            ctx.metadata["step_hashes"][step.name] = step.fingerprint(ctx)
+            self.run_step(ctx, step)
 
         self.invalidated.clear()
         self.steps_to_run = None
