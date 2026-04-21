@@ -47,8 +47,10 @@ class PreArteryMaskStep(BaseStep):
         # --- Step 3: Correct signals by aligning with median heartbeat ---
         beat_period = pulse_analysis.compute_idx0(signals_n, sampling_frequency)
         corrected_signals = np.zeros_like(signals_n)
-        for i, signal in enumerate(signals_n):
-            corrected_signals[i, :] = pulse_analysis.correct_branch_signal_with_heartbeat(signal, beat_period, k=10)
+        func = partial(pulse_analysis.correct_branch_signal_with_heartbeat, beat_period=beat_period, k=10)
+        corrected_signals = run_in_parallel(func, signals_n, n_jobs=-1, chunking=False)
+        # for i, signal in enumerate(signals_n):
+        #     corrected_signals[i, :] = pulse_analysis.correct_branch_signal_with_heartbeat(signal, beat_period, k=10)
         ctx.cache["corrected_signals"] = corrected_signals
         for i in range(1, labeled_vessels.max() + 1):
             ctx.output_manager.output("pulse_analysis", f"branch_{i}_corrected", (signals_n[i - 1, :], corrected_signals[i - 1, :]), "signal", options={"multiple_signals": True, "legend": ["Original Signal", "Corrected Signal"]})
@@ -93,6 +95,7 @@ class ComputeTemporalCuesStep(BaseStep):
         # --- Interpolate outlier frames using the filtered signal ---
 
         video_cleaned, arterial_pulse_interpolated = signal_processing.interpolate_outliers(video, arterial_pulse, pre_artery_mask, sampling_frequency=sampling_frequency)
+        # ctx.output_manager.output("pulse_analysis", "video_cleaned", video_cleaned, "video")
 
         # --- Compute correlation map with filtered pulses ---
 
