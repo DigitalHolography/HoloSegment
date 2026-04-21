@@ -1,7 +1,10 @@
 from unittest import signals
 
 from holosegment.pipeline.step import BaseStep, NestedStep
-from holosegment.segmentation import process_masks, pulse_analysis
+from holosegment.segmentation import process_masks, pulse_analysis, signal_processing
+from holosegment.utils.parallelization_utils import run_in_parallel
+from functools import partial
+
 import numpy as np
 
 class PulseAnalysisStep(NestedStep):
@@ -16,7 +19,7 @@ class PulseAnalysisStep(NestedStep):
             
 class PreArteryMaskStep(BaseStep):
     requires = {"M0_ff_video", "retinal_vessel_mask", "optic_disc_center"}
-    produces = {"labeled_vessels", "pre_artery_mask", "branch_signals"}
+    produces = {"labeled_vessels", "pre_artery_mask", "branch_signals", "corrected_signals", "pre_vein_mask"}
     name = "pre_artery_mask"
 
     def _relevant_config(self, ctx):
@@ -30,7 +33,7 @@ class PreArteryMaskStep(BaseStep):
         fs = ctx.holodoppler_config["fs"]
         stride = ctx.holodoppler_config["batch_stride"]
 
-        sampling_frequency = pulse_analysis.get_effective_sampling_freqency(fs, stride)
+        sampling_frequency = pulse_analysis.get_effective_sampling_frequency(fs, stride)
 
         # --- Step 1: Separate mask into branches ---
         labeled_vessels, _ = process_masks.get_labeled_vesselness(vessel_mask, *optic_disc_center)
@@ -43,8 +46,18 @@ class PreArteryMaskStep(BaseStep):
         signals_n = (signals - signals.mean(axis=1, keepdims=True)) / signals.std(axis=1, keepdims=True)
         ctx.cache["branch_signals"] = signals_n
 
+        beat_period = pulse_analysis.compute_idx0(signals_n, sampling_frequency)
+        print(f"    - Estimated beat period: {beat_period:.2f} seconds")
+        corrected_signals = np.zeros_like(signals_n)
+        for i, signal in enumerate(signals_n):
+            corrected_signals[i, :] = pulse_analysis.correct_branch_signal_with_heartbeat(signal, beat_period, k=2)
+        ctx.cache["corrected_signals"] = corrected_signals
+
+        for i in range(1, labeled_vessels.max() + 1):
+            ctx.output_manager.output("pulse_analysis", f"branch_{i}_corrected", corrected_signals[i - 1, :], "signal")
+
         # --- Step 3: Select regular peaks to classify arteries vs veins ---
-        pre_artery_mask, pre_vein_mask = pulse_analysis.compute_pre_masks(signals_n, labeled_vessels, sampling_frequency)
+        pre_artery_mask, pre_vein_mask = pulse_analysis.compute_pre_masks(corrected_signals, labeled_vessels, sampling_frequency)
         ctx.cache["pre_artery_mask"] = pre_artery_mask
         ctx.cache["pre_vein_mask"] = pre_vein_mask
 
@@ -65,28 +78,28 @@ class ComputeTemporalCuesStep(BaseStep):
 
         # --- Get pulses from masks ---
 
-        arterial_pulse = pulse_analysis.get_pulse_from_mask(video, pre_artery_mask)
-        venous_pulse = pulse_analysis.get_pulse_from_mask(video, pre_vein_mask)
-        choroidal_pulse = pulse_analysis.get_pulse_from_mask(video, choroidal_vessel_mask)
+        arterial_pulse = signal_processing.get_pulse_from_mask(video, pre_artery_mask)
+        venous_pulse = signal_processing.get_pulse_from_mask(video, pre_vein_mask)
+        choroidal_pulse = signal_processing.get_pulse_from_mask(video, choroidal_vessel_mask)
 
         # --- Filter pulses to remove high frequency noise ---
 
         fs = ctx.holodoppler_config["fs"]
         stride = ctx.holodoppler_config["batch_stride"]
 
-        sampling_frequency = pulse_analysis.get_effective_sampling_freqency(fs, stride)
+        sampling_frequency = pulse_analysis.get_effective_sampling_frequency(fs, stride)
 
-        arterial_pulse_filtered = pulse_analysis.get_filtered_pulse(arterial_pulse, sampling_frequency)
-        venous_pulse_filtered = pulse_analysis.get_filtered_pulse(venous_pulse, sampling_frequency)
-        choroidal_pulse_filtered = pulse_analysis.get_filtered_pulse(choroidal_pulse, sampling_frequency)
+        arterial_pulse_filtered = signal_processing.get_filtered_pulse(arterial_pulse, sampling_frequency)
+        venous_pulse_filtered = signal_processing.get_filtered_pulse(venous_pulse, sampling_frequency)
+        choroidal_pulse_filtered = signal_processing.get_filtered_pulse(choroidal_pulse, sampling_frequency)
 
         # --- Interpolate outlier frames using the filtered signal ---
 
-        video_cleaned, arterial_pulse_interpolated = pulse_analysis.interpolate_outliers(video, arterial_pulse, pre_artery_mask, sampling_frequency=sampling_frequency)
+        video_cleaned, arterial_pulse_interpolated = signal_processing.interpolate_outliers(video, arterial_pulse, pre_artery_mask, sampling_frequency=sampling_frequency)
 
         # --- Compute correlation map with filtered pulses ---
 
-        correlation_artery = pulse_analysis.compute_correlation(video_cleaned, arterial_pulse_interpolated)
+        correlation_artery = signal_processing.compute_correlation(video_cleaned, arterial_pulse_interpolated)
         # correlation_vein = pulse_analysis.compute_correlation(video, venous_pulse_filtered)
         ctx.set("correlation", correlation_artery)
         # ctx.set("correlation_vein", correlation_vein)

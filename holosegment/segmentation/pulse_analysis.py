@@ -2,41 +2,173 @@
 Pulse analysis module for analyzing temporal pulsatility in vessels
 """
 
+import signal
 from unittest import signals
 
 import numpy as np
-from scipy import fft
 from scipy.signal import butter, filtfilt, find_peaks, savgol_filter
-from scipy.stats import zscore
 from scipy.ndimage import uniform_filter1d, median_filter
+from scipy.signal import savgol_filter
+from scipy.interpolate import CubicSpline
+from scipy.interpolate import interp1d
 
 from skimage.measure import label
 from skimage import measure
-from holosegment.segmentation import process_masks
-from holosegment.utils import image_utils
 
+from holosegment.segmentation import signal_processing
+from holosegment.utils import image_utils
 
 # ================================ Pre-artery mask ================================ #
 
-def moving_mean(sig, window):
-    if window <= 1:
-        return sig
-    kernel = np.ones(window) / window
-    return np.convolve(sig, kernel, mode="same")
+def get_beats(signal, sys_idx, target_len=None):
+    """
+    Parameters
+    ----------
+    signal : 1D array
+    sys_idx : array-like
+        Indices of systolic peaks (length = n_beats + 1 ideally)
+    target_len : int or None
+        Length to interpolate each beat to. If None, uses max beat length.
 
-def movmean(x, k):
-    x = np.asarray(x, dtype=float)
-    n = len(x)
-    y = np.empty(n)
+    Returns
+    -------
+    beats : (n_beats, target_len)
+    median_beat : (target_len,)
+    """
+    
+    sys_idx = np.asarray(sys_idx)
+    n_beats = len(sys_idx) - 1
 
-    half = k // 2
+    # --- Determine target length ---
+    lengths = np.diff(sys_idx)
+    if target_len is None:
+        target_len = int(np.max(lengths))
 
-    for i in range(n):
-        start = max(0, i - half)
-        end = min(n, i + half + 1)
-        y[i] = np.mean(x[start:end])
+    beats = np.zeros((n_beats, target_len))
 
-    return y
+    # --- Process each beat ---
+    for i in range(n_beats):
+        start, end = sys_idx[i], sys_idx[i + 1]
+        beat = signal[start:end]
+
+        if len(beat) < 2:
+            beats[i, :] = np.nan
+            continue
+
+        # Normalize time axis
+        x_old = np.linspace(0, 1, len(beat))
+        x_new = np.linspace(0, 1, target_len)
+
+        f = interp1d(x_old, beat, kind='linear', fill_value="extrapolate")
+        beats[i, :] = f(x_new)
+
+    # --- Median beat (robust template) ---
+    return beats
+
+def fill_with_beat(beat, start_offset, end_offset, length):
+    """
+    Fill the start and end of the signal with the average beat to create a pseudo beat.
+    """
+    l = len(beat)
+    pseudo_signal = np.zeros(length)
+    i = start_offset
+
+    # If the beat is shorter than the offsets, we need to repeat it
+    for i in range(start_offset // l):
+        index = i * l + start_offset % l
+        pseudo_signal[index:index + l] = beat
+    for i in range(end_offset // l):
+        index = length - end_offset + i * l
+        pseudo_signal[index:index + l] = beat
+
+    # Fill the remaining part with the appropriate segment of the beat
+    pseudo_signal[:start_offset % l] = beat[-(start_offset % l):]
+    pseudo_signal[-(end_offset % l):] = beat[:(end_offset % l)]
+    return pseudo_signal
+
+def get_pseudo_signal(median_beat, peaks, length):
+    """
+    Create a pseudo beat by repeating the average beat and aligning it with the peaks.
+    """
+    x_old = np.linspace(0, 1, len(median_beat))
+    pseudo_signal = fill_with_beat(median_beat, int(peaks[0]), length - int(peaks[-1]), length)
+
+    f = interp1d(x_old, median_beat, kind='linear', fill_value="extrapolate")
+    for i in range(len(peaks) - 1):
+        pseudo_signal[peaks[i]:peaks[i + 1]] = f(np.linspace(0, 1, peaks[i + 1] - peaks[i]))
+        
+    return pseudo_signal
+
+def correct_signal(signal, pseudo_signal, k=2):
+    """
+    Correct the signal using a robust method based on the pseudo signal.
+    
+    Parameters
+    ----------
+    signal : 1D array
+        The original signal to be corrected.
+    pseudo_signal : 1D array
+        The pseudo signal used as a reference.
+    k : float
+        Tuning parameter for the soft rejection (default: 1.5).
+    
+    Returns
+    -------
+    signal_clean : 1D array
+        The corrected signal.
+    """
+
+    residual = signal - pseudo_signal
+
+    # robust scale
+    sigma = 1.4826 * np.median(np.abs(residual))
+
+    # weight (soft rejection)
+    alpha = np.clip(1 - (np.abs(residual) / (k * sigma)), 0, 1)
+
+    signal_clean = pseudo_signal + alpha * residual
+    return signal_clean
+
+def get_peaks(signal, beat_period, height_percentile=80, distance_tolerance=0.6):
+    """
+    Get peaks of the signal using a robust method based on the beat period.
+    """
+    diff_artery_signal = np.gradient(signal)
+    min_peak_height = np.percentile(diff_artery_signal, height_percentile)
+    min_peak_distance = int(beat_period * distance_tolerance)  # Allow some variability in heart rate
+
+    peaks, _ = find_peaks(
+        diff_artery_signal,
+        height=min_peak_height,
+        distance=min_peak_distance
+    )
+    return peaks
+
+def correct_branch_signal_with_heartbeat(signal, beat_period, k=2):
+    """Correct the signal using heartbeat-based correction.
+    Parameters
+    ----------
+    signal : 1D array
+        The original signal to be corrected.
+    beat_period : int
+        The estimated period of the heartbeat in samples.
+    k : float
+        Tuning parameter for the soft rejection (default: 2).
+
+    Returns
+    -------
+    corrected_signal : 1D array
+        The corrected signal.
+    """
+    signal_length = len(signal)
+    peaks = get_peaks(signal, beat_period)
+    beats = get_beats(signal, peaks, target_len=signal_length)
+    median_beat = np.nanmedian(beats, axis=0)
+
+    pseudo_signal = get_pseudo_signal(median_beat, peaks, signal_length)
+    corrected_signal = correct_signal(signal, pseudo_signal, k=k)
+    return corrected_signal
+
 
 def select_regular_peaks(signals_n, method, idx0, threshold=0.1, tolerance=0.3):
     gradient_n = np.gradient(signals_n, axis=1)
@@ -64,7 +196,7 @@ def _select_minmax(signals_n, gradient_n, idx0):
             prominence=1e-6   # helps avoid spurious peaks
         )
 
-        locs = peaks  # MATLAB locs = indices
+        locs = peaks
 
         # values of gradient at peak positions
         peaks_v = gradient_n[i, locs]
@@ -205,33 +337,7 @@ def get_filtered_branch_signals(video, labeled_vessels, sampling_frequency):
         signals[i - 1, :] = filtfilt(b, a, branch_mean)
 
         if moving_window > 1:
-            signals[i - 1, :] = movmean(signals[i - 1, :], moving_window)
-
-        signals[i - 1, :], _ = clean_cardiac_signal(signals[i - 1, :])
-
-        # mask1, smooth = detect_outliers_model_based(signals[i - 1, :])
-        # mask2 = detect_outliers_derivative(signals[i - 1, :])
-        # mask = mask1 | mask2
-
-        # mask_percentile = local_percentile_outliers(signals[i - 1, :], thresh=1.2)
-        # mask_derivative = detect_outliers_derivative(signals[i - 1, :])
-
-        # mask = mask_percentile | mask_derivative
-
-
-        # # optional: remove global drop
-        # mask |= detect_global_drop(signals[i - 1, :], drop_threshold=0.1)
-
-        # cleaned = interpolate_outliers_signal(signals[i - 1, :], mask)
-
-        # # optional final smoothing
-        # cleaned = savgol_filter(cleaned, 21, 3)
-
-        # # cleaned = interpolate_outliers_signal(signals[i - 1, :], outliers)
-
-        # # cleaned = savgol_filter(cleaned, 21, 3)
-
-        # signals[i - 1, :] = cleaned
+            signals[i - 1, :] = signal_processing.movmean(signals[i - 1, :], moving_window)
 
     return signals
 
@@ -265,102 +371,6 @@ def compute_pre_masks(signals, labeled_vessels, sampling_frequency):
     return pre_mask_artery, pre_mask_vein
 
 # ================================ Correlation ============================================== #
-
-def interpolate_outlier_frames(video, outlier_frames_mask):
-    """
-    Interpolate outlier frames in a 3D video array.
-
-    Parameters:
-        video (np.ndarray): 3D array of shape (H, W, T)
-        outlier_frames_mask (np.ndarray): 1D boolean array of length T
-
-    Returns:
-        video_cleaned (np.ndarray): 3D array with interpolated outlier frames
-    """
-    video_cleaned = video.copy()
-    outlier_indices = np.where(outlier_frames_mask)[0]
-
-    for idx in outlier_indices:
-        # Find previous and next non-outlier frames
-        prev_candidates = np.where(~outlier_frames_mask[:idx])[0]
-        next_candidates = np.where(~outlier_frames_mask[idx+1:])[0] + idx + 1
-
-        prev_frame = prev_candidates[-1] if len(prev_candidates) > 0 else None
-        next_frame = next_candidates[0] if len(next_candidates) > 0 else None
-
-        # Handle edge cases
-        if prev_frame is None:
-            prev_frame = next_frame
-        if next_frame is None:
-            next_frame = prev_frame
-
-        if prev_frame == next_frame:
-            video_cleaned[idx, :, :] = video[prev_frame, :, :]
-        else:
-            alpha = (idx - prev_frame) / (next_frame - prev_frame)
-            video_cleaned[idx, :, :] = (
-                (1 - alpha) * video[prev_frame, :, :] +
-                alpha * video[next_frame, :, :]
-            )
-
-    return video_cleaned
-
-# def interpolate_outliers_signal(signal, outlier_frames_mask):
-#     signal_cleaned = signal.copy()
-#     outlier_indices = np.where(outlier_frames_mask)[0]
-
-#     for idx in outlier_indices:
-#         prev_candidates = np.where(~outlier_frames_mask[:idx])[0]
-#         next_candidates = np.where(~outlier_frames_mask[idx+1:])[0] + idx + 1
-
-#         prev_frame = prev_candidates[-1] if len(prev_candidates) > 0 else None
-#         next_frame = next_candidates[0] if len(next_candidates) > 0 else None
-
-#         if prev_frame is None:
-#             prev_frame = next_frame
-#         if next_frame is None:
-#             next_frame = prev_frame
-
-#         if prev_frame == next_frame:
-#             signal_cleaned[idx] = signal[prev_frame]
-#         else:
-#             alpha = (idx - prev_frame) / (next_frame - prev_frame)
-#             signal_cleaned[idx] = (
-#                 (1 - alpha) * signal[prev_frame] +
-#                 alpha * signal[next_frame]
-#             )
-
-#     return signal_cleaned
-
-def local_percentile_outliers(signal, window=31, lower=5, upper=95, thresh=1.5):
-    n = len(signal)
-    mask = np.zeros(n, dtype=bool)
-    
-    half = window // 2
-    
-    for i in range(n):
-        start = max(0, i - half)
-        end = min(n, i + half + 1)
-        
-        w = signal[start:end]
-        
-        p_low = np.percentile(w, lower)
-        p_high = np.percentile(w, upper)
-        
-        # robust range
-        r = p_high - p_low
-        
-        if r == 0:
-            continue
-        
-        if signal[i] < p_low * (1/thresh) or signal[i] > p_high * thresh:
-            mask[i] = True
-            
-    return mask
-
-import numpy as np
-from scipy.signal import savgol_filter
-from scipy.interpolate import CubicSpline
 
 def clean_cardiac_signal(sig, fs=250):
     sig = sig.copy().astype(float)
@@ -397,101 +407,6 @@ def clean_cardiac_signal(sig, fs=250):
 
     return sig, mask
 
-def detect_global_drop(signal, drop_threshold=0.1):
-    baseline = np.median(signal[:len(signal)//2])
-    return signal < (1 - drop_threshold) * baseline
-
-def interpolate_outliers_signal(signal, mask):
-    x = np.arange(len(signal))
-    valid = ~mask
-    
-    if np.sum(valid) < 2:
-        return signal.copy()
-    
-    return np.interp(x, x[valid], signal[valid])
-
-def detect_outliers_model_based(signal, window=31, poly=3, threshold=3):
-    smooth = savgol_filter(signal, window, poly)
-    
-    residual = signal - smooth
-    
-    # robust scale
-    mad = np.median(np.abs(residual))
-    sigma = 1.4826 * mad if mad > 0 else np.std(residual)
-    
-    mask = np.abs(residual) > threshold * sigma
-    
-    return mask, smooth
-
-def detect_outliers_derivative(signal, threshold=3):
-    deriv = np.diff(signal, prepend=signal[0])
-    
-    mad = np.median(np.abs(deriv))
-    sigma = 1.4826 * mad if mad > 0 else np.std(deriv)
-    
-    mask = np.abs(deriv) > threshold * sigma
-    return mask
-
-def hampel_filter(signal, window=11, n_sigmas=3):
-    # Local median
-    med = median_filter(signal, size=window, mode='nearest')
-    
-    # Local MAD
-    abs_dev = np.abs(signal - med)
-    mad = median_filter(abs_dev, size=window, mode='nearest')
-    
-    # Scale factor for Gaussian consistency
-    sigma = 1.2 * mad
-    
-    # Avoid division issues
-    sigma[sigma == 0] = np.median(sigma[sigma > 0]) if np.any(sigma > 0) else 1.0
-    
-    # Outlier mask
-    outliers = abs_dev > n_sigmas * sigma
-    
-    return outliers, med
-
-def post_smooth(signal, window=21, poly=3):
-    return savgol_filter(signal, window, poly)  
-
-# Detect outliers using a moving median and threshold
-def detect_outliers_moving_median(signal, window=5, threshold_factor=2.0):
-    padded = np.pad(signal, (window//2,), mode='edge')
-    mov_median = uniform_filter1d(padded, size=window, mode='nearest')[window//2:-(window//2)]
-    deviation = np.abs(signal - mov_median)
-    mad = np.median(deviation)
-    return deviation > threshold_factor * mad if mad != 0 else np.zeros_like(signal, dtype=bool)
-
-def interpolate_outliers(video, signal, artery_mask, sampling_frequency):
-    outlier_frames_mask = detect_outliers_moving_median(signal, window=5, threshold_factor=2)
-    print(f"    - Detected {outlier_frames_mask.sum()} outlier frames based on arterial pulse signal.")
-    video = interpolate_outlier_frames(video, outlier_frames_mask)
-    signal = get_pulse_from_mask(video, artery_mask)
-    signal_filtered = get_filtered_pulse(signal, sampling_frequency=sampling_frequency)
-    return video, signal_filtered
-
-def compute_correlation(video, signal):
-    """
-    Compute the zero-lag correlation between the video signal and the average signal in the mask.
-
-    Parameters:
-        video (np.ndarray): 3D array of shape (H, W, T)
-        mask (np.ndarray): 2D binary mask of shape (H, W)
-
-    Returns:
-        R (np.ndarray): 1D array of correlation values
-    """
-    # compute local-to-average signal wave zero-lag correlation
-    signal_centered = signal - np.nanmean(signal)
-    video_centered = video - np.nanmean(video)
-
-    numerator = np.nanmean(video_centered * signal_centered[:, np.newaxis, np.newaxis], axis=0)
-    denominator = np.nanstd(video_centered) * np.nanstd(signal_centered)
-    
-    R = numerator / denominator
-    
-    return R
-
 # ================================ Diastole/Systole Analysis ================================ #
 
 def validate_peaks(sys_idx_list, min_distance):
@@ -512,42 +427,15 @@ def validate_peaks(sys_idx_list, min_distance):
 
     return sys_idx_list
 
-def get_effective_sampling_freqency(sampling_freq, stride):
+def get_effective_sampling_frequency(sampling_freq, stride):
     return sampling_freq / stride * 1000.0
-
-def get_pulse_from_mask(video, mask):
-    """
-    Get the pulse signal from the video using the provided mask.
-
-    Parameters:
-        video (np.ndarray): 3D array of shape (H, W, T)
-        mask (np.ndarray): 2D binary mask of shape (H, W)
-    Returns:
-        pulse (np.ndarray): 1D array of length T representing the pulse signal
-    """
-    pulse = np.nansum(video * mask[np.newaxis, :, :], axis=(1, 2))
-    pulse = pulse / np.count_nonzero(mask)
-    return pulse
-
-def get_filtered_pulse(pulse, sampling_frequency, cutoff=15, order=4):
-    """
-    Apply a low-pass Butterworth filter to the pulse signal.
-    Parameters:
-    pulse (np.ndarray): 1D array representing the pulse signal
-    sampling_frequency (float): Sampling frequency of the pulse signal
-    Returns:
-    filtered_pulse (np.ndarray): 1D array representing the filtered pulse signal
-    """
-    b, a = butter(order, cutoff / (sampling_frequency / 2), btype="low")
-    filtered_pulse = filtfilt(b, a, pulse)
-    return filtered_pulse
 
 
 def find_systole_index(
     pulse_artery,
     sampling_freq,
     pulse_vein=None,
-    lowpass_freq=15,
+    thresh=95,
 ):
     """
     FIND_SYSTOLE_INDEX Identifies systole peaks in the pulse signal.
@@ -576,7 +464,7 @@ def find_systole_index(
 
     # ---------------- Step 2: Detect peaks ----------------
     min_duration = 0.5  # seconds
-    min_peak_height = np.percentile(diff_artery_signal, 95)
+    min_peak_height = np.percentile(diff_artery_signal, thresh)
     min_peak_distance = int(np.floor(min_duration / dt))
 
     peaks, _ = find_peaks(
