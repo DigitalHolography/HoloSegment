@@ -6,6 +6,7 @@ from holosegment.utils.image_utils import normalize_to_uint8
 import holosegment.utils.json_utils as json_utils
 import imageio
 import holosegment.input_output.output_renderer as output_renderer
+import re
 
 
 class OutputManager:
@@ -17,7 +18,19 @@ class OutputManager:
         cache_folder,
         output_config=None
     ):
-        self.h5_path = h5_path
+        h5_path = Path(h5_path)
+        filename = h5_path.stem
+        parent = h5_path.parent
+        print(f"{filename=}, {parent=}")
+        template = re.compile(r"^(.*)_(output|raw)$")
+        match = template.match(filename)
+        if match:
+            self.h5_path = parent / f"{match.group(1)}_DV.h5"
+        else:
+            self.h5_path = parent / f"{filename}_DV.h5"
+        with h5py.File(self.h5_path, "w") as h5:
+            pass  # Just create an empty H5 file or overwrite if it exists
+
         self.schema = json_utils.flatten_schema(schema)
 
         self.output_dir = Path(output_folder)
@@ -25,7 +38,7 @@ class OutputManager:
         self.output_config = output_config or {}
 
         self.cache_dir = Path(cache_folder)
-
+        self.cache_dir.mkdir(exist_ok=True)
         self.renderers = {
             "image": output_renderer.ImageRenderer(),
             "mask": output_renderer.ImageRenderer(),
