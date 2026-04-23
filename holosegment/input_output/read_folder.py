@@ -3,6 +3,7 @@ Read a holodoppler folder
 """
 
 import os
+import glob
 import shutil
 from pathlib import Path
 
@@ -65,8 +66,8 @@ class HolodopplerFolder:
         former_output_folder, index = self._select_highest_subdirectory(holosegment_folder)
         if former_output_folder is None:
             return None, -1
-        return os.path.join(holosegment_folder, f"output_{index}"), index
-    
+        return holosegment_folder / f"output_{index}", index
+
     def create_output_folder(self):
         _, index = self.get_output_folder()
         new_output_folder = self.directory / "holosegment" / f"output_{index + 1}"
@@ -90,15 +91,17 @@ class HolodopplerFolder:
         return raw_folder
     
     def find_input_file(self):
-        raw_input_filename = self.directory.name + "_raw.h5"
-        if os.path.exists(self.raw_folder / raw_input_filename):
-            return self.raw_folder / raw_input_filename
-        
+        output_files = glob.glob(os.path.join(self.raw_folder, "*output.h5"))
+        raw_files = glob.glob(os.path.join(self.raw_folder, "*raw.h5"))
+        if output_files:
+            return Path(output_files[0])
+        if raw_files:
+            return Path(raw_files[0])
         # If expected .h5 file is not found, take the first .h5 file found
         input_files = [f for f in os.listdir(self.raw_folder) if f.endswith(".h5")]
         if len(input_files) == 0:
             raise FileNotFoundError(f"No HDF5 file found in {self.raw_folder}.")
-        return os.path.join(self.raw_folder, input_files[0])
+        return self.raw_folder / input_files[0]
 
     def read(self):
         self.raw_folder = self.get_input_folder()
