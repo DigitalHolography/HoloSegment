@@ -139,7 +139,7 @@ class Context:
         self.cache.clear()
 
 class Pipeline:
-    def __init__(self, model_registry, h5_schema, output_config=None, eyeflow_config=None, debug_mode=False):
+    def __init__(self, model_registry, h5_schema, output_config=None, eyeflow_config=None, debug_mode=False, model_cache_dir="~/.cache/holosegment/models"):
         """
         Initializes the pipeline with the given model registry and configuration.
         Args:
@@ -151,7 +151,7 @@ class Pipeline:
         """
         self.ctx = Context(
             eyeflow_config=eyeflow_config,
-            model_manager=ModelManager(model_registry),
+            model_manager=ModelManager(model_registry, cache_dir=model_cache_dir),
             h5_schema=h5_schema,
             output_config=output_config,
             debug_mode=debug_mode

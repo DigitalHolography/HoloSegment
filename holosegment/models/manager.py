@@ -5,7 +5,7 @@ from holosegment.models.wrapper import TorchModelWrapper, ONNXModelWrapper
 
 
 class ModelManager:
-    def __init__(self, registry, cache_dir="~/.cache/holosegment/models"):
+    def __init__(self, registry, cache_dir):
         self.registry = registry
         self.cache_dir = Path(os.path.expanduser(cache_dir))
         self.model_tasks = {task: models[0] for task, models in registry._tasks.items()}
