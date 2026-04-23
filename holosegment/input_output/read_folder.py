@@ -19,12 +19,13 @@ class HolodopplerFolder:
         self.read()
 
     def get_EF_config(self):
-        json_path = self.directory / "eyeflow" / "json"
+        json_path = Path(self.directory) / "eyeflow" / "json"
         if not os.path.exists(json_path) or not os.path.isdir(json_path):
             os.makedirs(json_path)
         json_files = [f for f in os.listdir(json_path) if f.endswith(".json")]
         if len(json_files) == 0:
-            config_file = shutil.copy("DefaultEyeflowParams.json", json_path / "input_EF_params.json")
+            config_path = Path("config") / "DefaultEyeflowParams.json"
+            config_file = shutil.copy(config_path, json_path / "input_EF_params.json")
         else:
             config_file = json_path / json_files[0]
         return config_file
@@ -84,10 +85,10 @@ class HolodopplerFolder:
         return self.cache_folder
     
     def get_input_folder(self):
-        self.raw_folder = self.directory / "raw"
-        if not os.path.exists(self.raw_folder):
+        raw_folder = self.directory / "raw"
+        if not os.path.exists(raw_folder):
             raise FileNotFoundError(f"Raw folder not found in {self.directory}")
-        return self.raw_folder
+        return raw_folder
     
     def find_input_file(self):
         output_files = glob.glob(os.path.join(self.raw_folder, "*output.h5"))

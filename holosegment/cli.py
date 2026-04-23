@@ -68,8 +68,9 @@ def main():
         print(f"Error: holodoppler folder not found: {input_folder}", file=sys.stderr)
         sys.exit(1)
 
-    registry = ModelRegistryConfig(Path("models.yaml"))
-    pipeline = Pipeline(registry, h5_schema=json.load(open("h5_schema.json")), output_config=json.load(open("output_config.json")), debug_mode=debug)
+    config_folder = Path("config")
+    registry = ModelRegistryConfig(config_folder / "models.yaml")
+    pipeline = Pipeline(registry, h5_schema=json.load(open(config_folder / "h5_schema.json")), output_config=json.load(open(config_folder / "output_config.json")), debug_mode=debug)
     if args.config:
         pipeline.load_eyeflow_config(args.config)
 
