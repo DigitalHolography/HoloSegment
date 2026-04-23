@@ -10,9 +10,10 @@ import numpy as np
 
 from dopplerview.pipeline.pipeline import Pipeline
 from dopplerview.models.registry import ModelRegistryConfig
+import dopplerview.input_output.user_config as user_config
 
 
-def load_eyeflow_config(config_path):
+def load_dopplerview_config(config_path):
     """Load configuration from JSON file"""
     with open(config_path, 'r') as f:
         return json.load(f)
@@ -68,11 +69,13 @@ def main():
         print(f"Error: holodoppler folder not found: {input_folder}", file=sys.stderr)
         sys.exit(1)
 
-    config_folder = Path("config")
-    registry = ModelRegistryConfig(config_folder / "models.yaml")
-    pipeline = Pipeline(registry, h5_schema=json.load(open(config_folder / "h5_schema.json")), output_config=json.load(open(config_folder / "output_config.json")), debug_mode=debug)
-    if args.config:
-        pipeline.load_eyeflow_config(args.config)
+
+    models_config = user_config.ensure_config_file("models.yaml")
+    h5_schema_config = user_config.ensure_config_file("h5_schema.json")
+    output_config = user_config.ensure_config_file("output_config.json")
+    registry = ModelRegistryConfig(models_config)
+    doppler_viewer_config = args.config or user_config.ensure_config_file("default_DV_params.json")
+    pipeline = Pipeline(registry, h5_schema=json.load(open(h5_schema_config)), output_config=json.load(open(output_config)), debug_mode=debug, dopplerview_config=doppler_viewer_config)
 
     targets = args.targets if args.targets else None
 

@@ -193,7 +193,7 @@ measure/
    ├── output/                            # Output folders used for debuging
    │   ├── output_0
    │   └── ...
-   ├── json/
+   ├── config/
    │   └── doppler_view_params.json      # The pipeline configuration
    ├── h5/
    │   └── measure_id_DV.h5              # The .h5 output

@@ -30,8 +30,8 @@ class Context:
         - services (models, output, etc.)
     """
 
-    def __init__(self, eyeflow_config, model_manager, h5_schema, output_config=None, debug_mode=False):
-        self.eyeflow_config = eyeflow_config
+    def __init__(self, dopplerview_config, model_manager, h5_schema, output_config=None, debug_mode=False):
+        self.dopplerview_config = dopplerview_config
         self.model_manager = model_manager
         self.model_instances = {}
         self.metadata = {
@@ -47,9 +47,9 @@ class Context:
         # Runtime data storage
         self.cache: Dict[str, Any] = {}
 
-    def load_eyeflow_config(self, config_path):
-        eyeflow_config = json.load(open(config_path))
-        self.eyeflow_config = json_utils.remove_spaces_from_keys(eyeflow_config) 
+    def load_dopplerview_config(self, config_path):
+        dopplerview_config = json.load(open(config_path))
+        self.dopplerview_config = json_utils.remove_spaces_from_keys(dopplerview_config) 
         print(f"Using Eyeflow config file: {config_path}")
 
     def _read_h5_into_cache(self):
@@ -75,9 +75,9 @@ class Context:
         self.holodoppler_config = json.load(open(self.folder.holodoppler_config))
         print(f"[Pipeline] Using Holodoppler config file: {self.folder.holodoppler_config}")
 
-        if self.eyeflow_config is None:
+        if self.dopplerview_config is None:
             # Load configs from folder if not already loaded
-            self.load_eyeflow_config(self.folder.eyeflow_config)
+            self.load_dopplerview_config(self.folder.dopplerview_config)
 
         if self.debug_mode:
             self._read_h5_into_cache()
@@ -139,18 +139,18 @@ class Context:
         self.cache.clear()
 
 class Pipeline:
-    def __init__(self, model_registry, h5_schema, output_config=None, eyeflow_config=None, debug_mode=False, model_cache_dir="~/.cache/dopplerview/models"):
+    def __init__(self, model_registry, h5_schema, output_config=None, dopplerview_config=None, debug_mode=False, model_cache_dir="~/.cache/dopplerview/models"):
         """
         Initializes the pipeline with the given model registry and configuration.
         Args:
             model_registry: Configuration for available models.
             h5_schema: Schema defining how to store outputs in HDF5.
             output_config: Configuration for debug outputs (optional). If None, outputs are manually saved.
-            eyeflow_config: Eyeflow configuration dictionary (optional) If None, the eyeflow configuration found in the input folder will be used.
+            dopplerview_config: DopplerView configuration dictionary (optional). If None, the dopplerview configuration found in the dopplerview folder will be used.
             debug_mode: If True, steps outputs are read from the .h5, and only targeted steps are re-run. This is useful for debugging specific steps without having to re-run the entire pipeline.
         """
         self.ctx = Context(
-            eyeflow_config=eyeflow_config,
+            dopplerview_config=dopplerview_config,
             model_manager=ModelManager(model_registry, cache_dir=model_cache_dir),
             h5_schema=h5_schema,
             output_config=output_config,
@@ -193,8 +193,8 @@ class Pipeline:
     def get_downstream_steps(self, step_name):
         return self.engine._collect_downstream(step_name)
 
-    def load_eyeflow_config(self, config_path):
-        self.ctx.load_eyeflow_config(config_path)
+    def load_dopplerview_config(self, config_path):
+        self.ctx.load_dopplerview_config(config_path)
 
     def load_input(self, input_path):
         self.ctx.load_input_folder(input_path)
@@ -208,7 +208,7 @@ class Pipeline:
     def run(self, targets=None):
         if not self.ctx.has("input_file"):
             raise RuntimeError("Input path not set. Please load input folder before running the pipeline.")
-        if self.ctx.eyeflow_config is None:
+        if self.ctx.dopplerview_config is None:
             raise RuntimeError("Configuration not loaded. Please load a configuration file before running the pipeline.")
         
         self.ctx.create_output_folder()
