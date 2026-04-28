@@ -95,7 +95,15 @@ measure_id/
     └── ...
 ```
 
-https://github.com/DigitalHolography/HoloDopplerPython/tree/main
+## Executable (InnoSetup + TKinter)
+
+* Download the .exe of the latest release, and let the installer do its things.
+* Run DopplerView.exe
+   * Drag and drop a folder, and click on *Run the full pipeline*
+   * To select the steps and the models used in the pipeline, activate the *Advanced view*
+
+To create your 
+
 
 ## CLI
 
@@ -127,7 +135,7 @@ dopplerview ./data/patient_01 \
     -v
 ```
 
-## GUI (Streamlit)
+## GUI
 
 Launch the graphical interface:
 
@@ -142,6 +150,8 @@ The GUI allows you to:
 * Visualize M0 full-field image
 * Overlay vessel and AV segmentation masks
 * Run the full pipeline interactively
+
+---
 
 # Project Structure
 
