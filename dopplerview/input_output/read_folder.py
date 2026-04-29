@@ -16,6 +16,7 @@ class HolodopplerFolder:
         self.holodoppler_config = None
         self.raw_folder = None
         self.input_file = None
+        self.measure_name = None
 
         self.read(parent_directory)
 

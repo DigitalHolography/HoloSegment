@@ -27,7 +27,7 @@ class OutputManager:
         self.schema = json_utils.flatten_schema(schema)
 
         self.dopplerview_folder = dopplerview_folder
-        self.output_dir = dopplerview_folder.get_output_folder()[0] # Get the output folder if it exists, otherwise it will be created when needed
+        self.output_dir = None # It will be created when needed
         self.output_config = output_config or {}
 
         self.dopplerview_config = dopplerview_config

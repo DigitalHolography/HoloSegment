@@ -117,14 +117,25 @@ class Context:
             for key in input_file.keys():
                 self.cache[key] = input_file[key][()]
 
+    def ensure_directory(self, path):
+        path = Path(path)
+        if not os.path.isdir(path):
+            extension = path.suffix
+            if extension == ".holo":
+                self.measure_name = path.stem
+                return path.parent / self.measure_name
+            raise NotADirectoryError(f"Expected a directory or .holo file, but got: {path}")
+        return path
+
     def load_input_folder(self, folder_path):
         self.clear()  # Clear cache before loading new input
-        self.measure_folder = folder_path
+        self.measure_folder = self.ensure_directory(folder_path)
 
-        self.HD_folder = HolodopplerFolder(folder_path)
+        self.HD_folder = HolodopplerFolder(self.measure_folder)
         self.cache["input_file"] = self.HD_folder.input_file
-        self.holodoppler_config = self.load_holodoppler_config(self.HD_folder.holodoppler_config)
-        print(f"[Pipeline] Using Holodoppler config file: {self.HD_folder.holodoppler_config}")
+        self.load_holodoppler_config(self.HD_folder.holodoppler_config)
+
+        self.load_DV_folder()
 
         if self.debug_mode:
             self._read_h5_into_cache()
@@ -142,8 +153,7 @@ class Context:
         
         if self.dopplerview_config is None:
             # Load configs from folder if not already loaded
-            print(f"[Pipeline] Using DopplerView config file: {self.DV_folder.dopplerview_config}")
-            self.dopplerview_config = self.load_config(self.DV_folder.dopplerview_config)
+            self.load_dopplerview_config(self.DV_folder.dopplerview_config)
 
     def load_folder_list(self, folder_list_path):
         if not os.path.exists(folder_list_path):
@@ -176,9 +186,12 @@ class Context:
         return self.get_model(model_name)
     
     def create_output_folder(self):
-        self.load_DV_folder()
-        # Create a new output folder with an incremented index
+        if self.DV_folder is None:
+            self.load_DV_folder()
+
+        # Create the output manager. It will lazily create the output folder when needed, to avoid creating empty output folders for runs that don't produce any outputs
         self.output_manager = OutputManager(dopplerview_folder=self.DV_folder, schema=self.h5_schema, dopplerview_config=self.dopplerview_config, output_config=self.output_config)
+
 
     def set(self, key: str, value: Any):
         self.cache[key] = value
@@ -281,8 +294,6 @@ class Pipeline:
         self.engine.run(self.ctx, targets)
         elapsed = time.time() - start_time
         print(f"[Pipeline] Finished execution in {elapsed:.2f}s")
-
-
 
         # If in debug mode, save the entire cache to the H5 file after execution
         if self.ctx.debug_mode:

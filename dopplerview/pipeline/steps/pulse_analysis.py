@@ -30,25 +30,24 @@ class PreArteryMaskStep(BaseStep):
 
         fs = ctx.holodoppler_config["sampling_freq"]
         stride = ctx.holodoppler_config["batch_stride"]
-        print(f"{fs=}, {stride=}")
-
+        print(f"    - Camera sampling frequency: {fs} Hz, batch stride: {stride}")
 
         sampling_frequency = pulse_analysis.get_effective_sampling_frequency(fs, stride)
+
+        print(f"    - Effective sampling frequency after accounting for batch stride: {sampling_frequency:.2f} Hz")
 
         # --- Step 1: Separate mask into branches ---
         labeled_vessels, _ = process_masks.get_labeled_vesselness(vessel_mask, *optic_disc_center)
         ctx.set("labeled_vessels", labeled_vessels)
 
         # --- Step 2: Compute mean temporal signal for each branch ---
-        ctx.output_manager.output("pulse_analysis", "M0_ff_video", video, "video")
+        # ctx.output_manager.output("pulse_analysis", "M0_ff_video", video, "video")
         signals = pulse_analysis.get_filtered_branch_signals(video, labeled_vessels, sampling_frequency)
-        print(len(signals), labeled_vessels.max())
         ctx.output_manager.output("pulse_analysis", "labeled_vessels", labeled_vessels, "labeled_mask")
         signals_n = (signals - signals.mean(axis=1, keepdims=True)) / signals.std(axis=1, keepdims=True)
         ctx.cache["branch_signals"] = signals_n
 
         # --- Step 3: Correct signals by aligning with median heartbeat ---
-        print(sampling_frequency)
         beat_period = pulse_analysis.compute_idx0(signals_n, sampling_frequency)
         corrected_signals = np.zeros_like(signals_n)
         func = partial(pulse_analysis.correct_branch_signal_with_heartbeat, beat_period=beat_period, k=10)

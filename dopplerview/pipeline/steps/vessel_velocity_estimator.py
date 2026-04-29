@@ -46,7 +46,7 @@ class VesselVelocityEstimatorStep(BaseStep):
         def _inpaint_frame(frame, mask):
             return inpaint.inpaint_biharmonic(frame, mask)
         
-        fRMSbkg = run_in_parallel(partial(_inpaint_frame, mask=mask), fRMS, n_jobs=n_jobs)
+        fRMSbkg = run_in_parallel(partial(_inpaint_frame, mask=mask), fRMS, n_jobs=-1, chunking=False)
 
         # fRMSbkg = np.stack(np.array([inpaint.inpaint_biharmonic(frame, mask) for frame in fRMS]), axis=0)
 
