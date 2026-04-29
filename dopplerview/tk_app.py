@@ -390,6 +390,8 @@ class MainWindow:
         self.cleanup_image()
         self.pipeline.ctx.clear()
         self.update_step_display()
+        self.progress["value"] = 0
+        self.progress_minimal["value"] = 0
 
     def load_holo(self):
         file_path = filedialog.askopenfilename(filetypes=[("Holo files", "*.holo")], defaultextension=".holo")
