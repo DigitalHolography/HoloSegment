@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-INSTALL_DIR = PROJECT_ROOT / "installer"
+INSTALL_DIR = PROJECT_ROOT / "packaging"
 SPEC_FILE = INSTALL_DIR / "DopplerView.spec"
 ISS_FILE = INSTALL_DIR / "DopplerView.iss"
 DIST_DIR = PROJECT_ROOT / "dist"

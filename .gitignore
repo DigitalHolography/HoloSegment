@@ -8,9 +8,9 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+*build/
 develop-eggs/
-dist/
+*dist/
 downloads/
 eggs/
 .eggs/
@@ -23,10 +23,9 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-*.spec
 
 # Virtual environments
-venv/
+*venv*/
 ENV/
 env/
 
@@ -36,7 +35,3 @@ env/
 # OS
 .DS_Store
 Thumbs.db
-
-# Project specific
-output/
-results/
