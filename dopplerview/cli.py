@@ -73,7 +73,7 @@ def main():
     pipeline = Pipeline(debug_mode=debug)
 
     if args.config:
-        pipeline.load_eyeflow_config(args.config)
+        pipeline.load_dopplerview_config(args.config)
 
     targets = args.targets if args.targets else None
 

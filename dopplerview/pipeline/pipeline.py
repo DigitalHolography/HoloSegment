@@ -33,7 +33,6 @@ class Context:
     """
 
     def __init__(self, debug_mode=False):
-        self.eyeflow_config = None
         self.model_manager = None
         self.model_instances = {}
         self.metadata = {
@@ -48,6 +47,8 @@ class Context:
         self.h5_schema = None
         self.output_config = None
         self.debug_mode = debug_mode
+        self.dopplerview_config = None
+        self.holodoppler_config = None
 
         # Runtime data storage
         self.cache: Dict[str, Any] = {}
@@ -89,10 +90,17 @@ class Context:
         if self.output_config is None:
             self.load_default_output_config()
 
-    def load_eyeflow_config(self, config_path):
-        eyeflow_config = json.load(open(config_path))
-        self.eyeflow_config = json_utils.remove_spaces_from_keys(eyeflow_config) 
-        print(f"Using Eyeflow config file: {config_path}")
+    def load_config(self, config_path):
+        config = json.load(open(config_path))
+        return json_utils.remove_spaces_from_keys(config)
+    
+    def load_dopplerview_config(self, config_path):
+        self.dopplerview_config = self.load_config(config_path)
+        print(f"[Pipeline] Using DopplerView config file: {config_path}")
+    
+    def load_holodoppler_config(self, config_path):
+        self.holodoppler_config = self.load_config(config_path)
+        print(f"[Pipeline] Using Holodoppler config file: {config_path}")
 
     def _read_h5_into_cache(self):
         if self.DV_folder is None:
@@ -101,10 +109,10 @@ class Context:
         h5_cache_path = cache_folder / "cache.h5"
 
         if not h5_cache_path.exists():
-            print(f"No cache file found at {h5_cache_path}. Skipping cache loading.")
+            print(f"[Pipeline] No cache file found at {h5_cache_path}. Skipping cache loading.")
             return
         
-        print(f"Reading cache from {h5_cache_path}")
+        print(f"[Pipeline] Reading cache from {h5_cache_path}")
         with h5py.File(h5_cache_path, "r") as input_file:
             for key in input_file.keys():
                 self.cache[key] = input_file[key][()]
@@ -115,7 +123,7 @@ class Context:
 
         self.HD_folder = HolodopplerFolder(folder_path)
         self.cache["input_file"] = self.HD_folder.input_file
-        self.holodoppler_config = self.load_config(self.HD_folder.holodoppler_config)
+        self.holodoppler_config = self.load_holodoppler_config(self.HD_folder.holodoppler_config)
         print(f"[Pipeline] Using Holodoppler config file: {self.HD_folder.holodoppler_config}")
 
         if self.debug_mode:
