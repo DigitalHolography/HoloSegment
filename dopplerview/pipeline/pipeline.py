@@ -11,8 +11,8 @@ from dopplerview.pipeline.dag import DAGEngine
 from dopplerview.models.manager import ModelManager
 from dopplerview.input_output.output_manager import OutputManager
 from dopplerview.utils import json_utils
-from dopplerview.input_output.read_moments import Moments
 
+from dopplerview.pipeline.steps.read_moments import ReadMomentsStep
 from dopplerview.pipeline.steps.preprocess import PreprocessStep
 from dopplerview.pipeline.steps.optic_disc import OpticDiscDetectionStep
 from dopplerview.pipeline.steps.vessel_segmentation import RetinalVesselSegmentationStep, ChoroidalVesselSegmentationStep
@@ -140,12 +140,6 @@ class Context:
         if self.debug_mode:
             self._read_h5_into_cache()
 
-        reader = Moments(self.HD_folder.input_file)
-        reader.read_moments()
-        self.cache["moment0"] = reader.M0
-        self.cache["moment1"] = reader.M1
-        self.cache["moment2"] = reader.M2
-
     def load_DV_folder(self):
         if not self.measure_folder:
             raise RuntimeError("Measure folder not set. Cannot load DopplerView folder.")
@@ -224,6 +218,7 @@ class Pipeline:
 
         # Register steps
         self.steps = {
+            ReadMomentsStep(),
             PreprocessStep(),
             OpticDiscDetectionStep(),
             RetinalVesselSegmentationStep(),

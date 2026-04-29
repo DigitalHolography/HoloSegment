@@ -2,26 +2,8 @@
 
 from collections import defaultdict, deque
 from typing import Dict, List, Iterable
+from dopplerview.pipeline.step import BaseStep
 import time
-
-
-class BaseStep:
-    """
-    Base class for pipeline steps.
-
-    Each step must define:
-        - name
-        - requires (list of data keys)
-        - produces (list of data keys)
-    """
-
-    name: str = None
-    requires: List[str] = []
-    produces: List[str] = []
-
-    def run(self, ctx):
-        raise NotImplementedError
-
 
 class DAGEngine:
     """
@@ -176,7 +158,6 @@ class DAGEngine:
         print(f"[DAG] Finished {step.name} in {elapsed:.2f}s")
 
         if callback:
-            print(f"    - Callback: step_done for {step.name} with elapsed time {elapsed:.2f}s")
             callback("step_done", step.name, elapsed)
 
         step.export(ctx)

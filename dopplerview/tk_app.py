@@ -42,7 +42,6 @@ class MainWindow:
 
         self._minimal_title_font: tkfont.Font | None = None
         self.input_folder = tk.StringVar(value="No input selected")
-        self.folder_loaded=False
 
         # --- pipeline init ---
 
@@ -386,12 +385,13 @@ class MainWindow:
 
     def load_input(self, folder):
         self.input_folder.set(folder)
-        self.folder_loaded = False
         self.cleanup_image()
-        self.pipeline.ctx.clear()
-        self.update_step_display()
         self.progress["value"] = 0
         self.progress_minimal["value"] = 0
+
+        self.pipeline.load_input(folder)
+        self.update_step_display()
+        
 
     def load_holo(self):
         file_path = filedialog.askopenfilename(filetypes=[("Holo files", "*.holo")], defaultextension=".holo")
@@ -429,10 +429,6 @@ class MainWindow:
         def callback(event, *args):
             self.queue.put((event, args))
         try:
-            if not self.folder_loaded:
-                self.pipeline.load_input(Path(self.input_folder.get()))
-                self.folder_loaded=True
-
             self.pipeline.run(targets=steps, callback=callback)
 
             img = self.pipeline.ctx.get("M0_ff_image")
