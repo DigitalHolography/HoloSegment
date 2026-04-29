@@ -42,6 +42,7 @@ class MainWindow:
 
         self._minimal_title_font: tkfont.Font | None = None
         self.input_folder = tk.StringVar(value="No input selected")
+        self.folder_loaded=False
 
         # --- pipeline init ---
 
@@ -181,7 +182,7 @@ class MainWindow:
             self.minimal_logo_label = ttk.Label(container, image=self._minimal_logo_image)
             self.minimal_logo_label.grid(row=1, column=0, pady=(0, 20))
 
-        self.btn_load = ttk.Button(container, text="Load .holo File", command=self.load_holo)
+        self.btn_load = ttk.Button(container, text="Select .holo File", command=self.load_holo)
         self.btn_load.grid(row=2, column=0, pady=(0, 10))
 
         self.minimal_input_path_label = tk.Label(
@@ -203,7 +204,7 @@ class MainWindow:
         frame = self.advanced_view
 
         # Buttons
-        self.btn_load = ttk.Button(frame, text="Load Folder", command=self.load_folder)
+        self.btn_load = ttk.Button(frame, text="Select .holo File", command=self.load_holo)
         self.btn_load.pack(pady=5)
 
         self.minimal_input_path_label = tk.Label(
@@ -327,7 +328,6 @@ class MainWindow:
 
             for s in pipeline.get_step_names():
                 self.step_vars[s].set(s in resolved)
-
         else:
             # REMOVE step + downstream
             downstream = pipeline.get_downstream_steps(step)
@@ -365,14 +365,12 @@ class MainWindow:
         pipeline = self.pipeline
 
         selected = self.get_selected_steps()
-        resolved = pipeline.resolve_execution_graph(selected)
 
         # Steps that will actually run
         pipeline.set_targets(selected)
 
         for step, cb in self.step_checkboxes.items():
             is_checked = self.step_vars[step].get()
-            is_required = step in resolved
             is_cached = pipeline.is_cached(step)
 
             # -------- label logic --------
@@ -382,27 +380,21 @@ class MainWindow:
                 else:
                     color = "#d7a61e"
             else:
-                if is_required:
-                    color = "#6696e9"
-                else:
-                    color = "#ffffff"
+                color = "#ffffff"
 
             cb.config(selectcolor=color)
 
     def load_input(self, folder):
         self.input_folder.set(folder)
-        self.pipeline.load_input(Path(folder))
+        self.folder_loaded = False
+        self.cleanup_image()
+        self.pipeline.ctx.clear()
         self.update_step_display()
 
     def load_holo(self):
         file_path = filedialog.askopenfilename(filetypes=[("Holo files", "*.holo")], defaultextension=".holo")
         if file_path:
             self.load_input(file_path)
-
-    def load_folder(self):
-        folder = filedialog.askdirectory()
-        if folder:
-            self.load_input(folder)
 
     def get_selected_steps(self):
         return [step for step, var in self.step_vars.items() if var.get()]
@@ -435,6 +427,10 @@ class MainWindow:
         def callback(event, *args):
             self.queue.put((event, args))
         try:
+            if not self.folder_loaded:
+                self.pipeline.load_input(Path(self.input_folder.get()))
+                self.folder_loaded=True
+
             self.pipeline.run(targets=steps, callback=callback)
 
             img = self.pipeline.ctx.get("M0_ff_image")
@@ -572,6 +568,9 @@ class MainWindow:
     def display_image(self, img):
         self.image_tk = np_to_tk(img)  # keep reference!
         self.image_label.config(image=self.image_tk)
+
+    def cleanup_image(self):
+        self.image_label.config(image="")
 
     def overlay(self, image, artery_mask, vein_mask):
         img = image.copy()
